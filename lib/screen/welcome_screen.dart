@@ -28,13 +28,13 @@ class WelcomeScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const SizedBox(height: 20), // Espace sous la barre
                   // Logo ou illustration
                   Image.asset(
-                    'assets/image/welcome.png.jpg',
+                    'assets/image/welcome.png',
                     width: 200,
                     height: 200,
                   ),
-                  const SizedBox(height: 30),
 
                   const Text(
                     'Bienvenue chez CTI TECHNOLOGIE',
