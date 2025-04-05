@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  LoginScreenState createState() => LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class LoginScreenState extends State<LoginScreen> {
+  // ignore: unused_field
   double _decorationHeight = 250; // Hauteur initiale de la décoration
 
   void _reduceDecoration() {
@@ -76,12 +79,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: InputDecoration(
                         labelText: 'Email',
                         labelStyle:
-                            const TextStyle(color: Color(0xFF002E6D)), // Bleu foncé
+                            const TextStyle(color: Color(0xFF002E6D)),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         focusedBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFF002E6D)), // Bleu foncé
+                          borderSide: BorderSide(color: Color(0xFF002E6D)),
                         ),
                       ),
                       keyboardType: TextInputType.emailAddress,
@@ -113,17 +116,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  // Lien Mot de passe oublié
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () {
-                        // Ajouter la navigation vers la page de récupération de mot de passe
                       },
                       child: const Text(
                         'Mot de passe oublié ?',
                         style: TextStyle(
-                          color: Color(0xFF002E6D), // Bleu foncé
+                          color: Color(0xFF002E6D),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -133,17 +134,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Bouton Se connecter
                   GestureDetector(
                     onTap: () {
-                      // Naviguer vers la page Home
                       Navigator.pushNamed(context, '/home');
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       curve: Curves.easeInOut,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF002E6D), // Bleu foncé
+                        color: const Color(0xFF002E6D),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
+                            // ignore: deprecated_member_use
                             color: Colors.black.withOpacity(0.2),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
@@ -163,39 +164,37 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Bouton Se connecter avec Google
-                  OutlinedButton.icon(
+                  OutlinedButton(
                     onPressed: () {
                       // Ajouter la logique de connexion avec Google ici
                     },
-                    icon: const Icon(Icons.login, color: Color(0xFF002E6D)),
-                    label: const Text(
-                      'Se connecter avec Google',
-                      style: TextStyle(
-                        color: Color(0xFF002E6D), // Bleu foncé
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFF002E6D)), // Bleu foncé
+                      backgroundColor: Colors.white,
+                      side: const BorderSide(color: Color(0xFFDDDDDD)), // Bordure grise subtile
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                      elevation: 0,
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Lien Créer un compte
-                  TextButton(
-                    onPressed: () {
-                      // Ajouter la navigation vers l'écran d'inscription ici
-                    },
-                    child: const Text(
-                      'Créer un compte',
-                      style: TextStyle(
-                        color: Color(0xFF002E6D), // Bleu foncé
-                        fontWeight: FontWeight.bold,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'assets/image/google_logo.png',
+                          height: 18,
+                          width: 18,
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'Continuer avec Google',
+                          style: TextStyle(
+                            color: Colors.black54,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

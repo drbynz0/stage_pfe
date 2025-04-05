@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'screen/login_screen.dart'; // Import de l'écran de connexion
-import 'screen/welcome_screen.dart'; // Import de l'écran d'accueil
-import 'screen/home_screen.dart'; // Import de l'écran d'accueil principal
+import 'screens/login_screen.dart';
+import 'screens/welcome_screen.dart';
+import 'screens/home_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,15 +13,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter app',
+      title: 'CTI TECHNOLOGIE',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      initialRoute: '/', // Route initiale
+      initialRoute: '/',
       routes: {
-        '/': (context) => WelcomeScreen(), // Écran d'accueil
-        '/login': (context) => LoginScreen(), // Écran de connexion
-        '/home': (context) => HomeScreen(), // Écran principal (Home)
+        '/': (context) => WelcomeScreen(),
+        '/login': (context) => LoginScreen(),
+        '/home': (context) => HomeScreen(),
       },
     );
   }
