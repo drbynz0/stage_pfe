@@ -188,7 +188,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Lien Créer un compte
                   TextButton(
                     onPressed: () {
-                      // Ajouter la navigation vers l'écran d'inscription ici
+                      // Naviguer vers la page RegisterScreen
+                      Navigator.pushNamed(context, '/register');
                     },
                     child: const Text(
                       'Créer un compte',

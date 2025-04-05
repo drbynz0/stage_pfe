@@ -5,17 +5,27 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Créez une clé globale pour le Scaffold
+    final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+
     return Scaffold(
+      key: scaffoldKey, // Associez la clé au Scaffold
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFF003366), // Couleur bleu foncé
         automaticallyImplyLeading: false, // Supprime la flèche de retour
         title: Row(
           children: [
-            const Icon(
-              Icons.menu,
-              color: Colors.white,
-              size: 30,
+            IconButton(
+              icon: const Icon(
+                Icons.menu,
+                color: Colors.white,
+                size: 30,
+              ),
+              onPressed: () {
+                // Utilisez la clé pour ouvrir le Drawer
+                scaffoldKey.currentState?.openDrawer();
+              },
             ),
             const SizedBox(width: 10),
             const Text(
@@ -27,12 +37,58 @@ class HomeScreen extends StatelessWidget {
             ),
           ],
         ),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.more_vert, color: Colors.white),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications, color: Colors.white),
+            onPressed: () {
+              // Ajouter une action pour les notifications
+            },
           ),
         ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: const BoxDecoration(
+                color: Color(0xFF003366), // Couleur bleu foncé
+              ),
+              child: const Text(
+                'Menu',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('Profil'),
+              onTap: () {
+                // Naviguer vers la page Profil
+                Navigator.pushNamed(context, '/profile');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Paramètres'),
+              onTap: () {
+                // Naviguer vers la page Paramètres
+                Navigator.pushNamed(context, '/settings');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Déconnexion'),
+              onTap: () {
+                // Naviguer vers la page de connexion
+                Navigator.pushNamed(context, '/login');
+              },
+            ),
+          ],
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

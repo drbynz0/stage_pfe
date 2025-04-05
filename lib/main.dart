@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'screen/login_screen.dart'; // Import de l'écran de connexion
 import 'screen/welcome_screen.dart'; // Import de l'écran d'accueil
-import 'screen/home_screen.dart'; // Import de l'écran d'accueil principal
+import 'screen/home_screen.dart'; // Import de l'écran principal (Home)
+import 'screen/registerscreen.dart'; // Import de l'écran "Créer un compte"
 
 void main() {
   runApp(const MyApp());
@@ -22,6 +23,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => WelcomeScreen(), // Écran d'accueil
         '/login': (context) => LoginScreen(), // Écran de connexion
         '/home': (context) => HomeScreen(), // Écran principal (Home)
+        '/register': (context) => RegisterScreen(), // Écran "Créer un compte"
       },
     );
   }
