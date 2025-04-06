@@ -174,7 +174,7 @@ class LoginScreenState extends State<LoginScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
                       elevation: 0,
                     ),
                     child: Row(
