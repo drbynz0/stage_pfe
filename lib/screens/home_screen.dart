@@ -10,7 +10,7 @@ class HomeScreen extends StatefulWidget {
 
 class HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-  int _currentIndex = 2; // Index par défaut (Home)
+  int _currentIndex = 2;
   late final List<Widget> _pages;
 
   @override
@@ -138,7 +138,7 @@ class HomeScreenState extends State<HomeScreen> {
         color: const Color(0xFF004A99),
         borderRadius: BorderRadius.circular(20),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(1),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

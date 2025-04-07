@@ -21,6 +21,17 @@ class AddProductScreenState extends State<AddProductScreen> {
   final TextEditingController _categoryController = TextEditingController();
   File? _imageFile;
 
+  final List<Product> products = Product.getProducts();
+
+  // Liste des catégories existantes
+  late List<String> _existingCategories;
+
+  @override
+  void initState() {
+    super.initState();
+    _existingCategories = products.map((p) => p.category).toSet().toList();
+  }
+
   Future<void> _pickImage() async {
     final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
@@ -40,7 +51,7 @@ class AddProductScreenState extends State<AddProductScreen> {
         variants: 1,
         code: _codeController.text,
         date: "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}",
-        imagePath: _imageFile?.path,
+        imagePath: _imageFile?.path ?? 'assets/image/icon_shop.jpg',
       );
 
       widget.onProductAdded(newProduct);
@@ -82,7 +93,7 @@ class AddProductScreenState extends State<AddProductScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
-              
+
               // Champ de téléchargement d'image
               GestureDetector(
                 onTap: _pickImage,
@@ -110,7 +121,7 @@ class AddProductScreenState extends State<AddProductScreen> {
               ),
               const SizedBox(height: 20),
 
-              //Code du produit
+              // Code du produit
               TextFormField(
                 controller: _codeController,
                 decoration: const InputDecoration(
@@ -126,7 +137,7 @@ class AddProductScreenState extends State<AddProductScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               // Nom du produit
               TextFormField(
                 controller: _nameController,
@@ -143,7 +154,7 @@ class AddProductScreenState extends State<AddProductScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               // Prix
               TextFormField(
                 controller: _priceController,
@@ -164,7 +175,7 @@ class AddProductScreenState extends State<AddProductScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               // Stock
               TextFormField(
                 controller: _stockController,
@@ -185,7 +196,7 @@ class AddProductScreenState extends State<AddProductScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               // Catégorie
               TextFormField(
                 controller: _categoryController,
@@ -194,6 +205,9 @@ class AddProductScreenState extends State<AddProductScreen> {
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.category),
                 ),
+                onChanged: (value) {
+                  setState(() {});
+                },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Veuillez entrer une catégorie';
@@ -201,8 +215,29 @@ class AddProductScreenState extends State<AddProductScreen> {
                   return null;
                 },
               ),
+              const SizedBox(height: 8),
+
+              // Aperçu des catégories existantes
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _existingCategories
+                    .where((category) => category.toLowerCase().contains(_categoryController.text.toLowerCase()))
+                    .map((category) => GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _categoryController.text = category;
+                            });
+                          },
+                          child: Chip(
+                            label: Text(category),
+                            backgroundColor: Colors.blue.shade100,
+                          ),
+                        ))
+                    .toList(),
+              ),
               const SizedBox(height: 24),
-              
+
               // Boutons d'action
               Row(
                 children: [

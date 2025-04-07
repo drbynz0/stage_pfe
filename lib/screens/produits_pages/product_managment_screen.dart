@@ -12,27 +12,7 @@ class ProductManagementScreen extends StatefulWidget {
 }
 
 class ProductManagementScreenState extends State<ProductManagementScreen> {
-  final List<Product> products = [
-    Product(
-      name: "Handmade Pouch",
-      variants: 3,
-      code: "302012",
-      category: "Bgg & Pouch",
-      stock: 10,
-      price: 121.00,
-      date: "29 Dec 2022",
-    ),
-    Product(
-      name: "Smartwatch E2",
-      variants: 2,
-      code: "30201",
-      category: "Watch",
-      stock: 20.4,
-      price: 590.00,
-      date: "24 Dec 2022",
-    ),
-    // ... (autres produits restent identiques)
-  ];
+  final List<Product> products = Product.getProducts();
 
   String _searchQuery = '';
   String _selectedCategory = 'Tout';
@@ -160,7 +140,16 @@ class ProductManagementScreenState extends State<ProductManagementScreen> {
                             color: Colors.blue[50],
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Icon(Icons.shopping_bag, color: Colors.blue),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.asset(
+                              product.imagePath ?? 'assets/image/icon_shop.jpg',
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.image_not_supported, color: Colors.grey);
+                              },
+                            ),
+                          ),
                         ),
                         title: Text(
                           product.name,
@@ -172,8 +161,6 @@ class ProductManagementScreenState extends State<ProductManagementScreen> {
                             Row(
                               children: [
                                 Text('${product.variants} variants • ${product.category}'),
-                                const Spacer(),
-                                Text(product.date),
                               ],
                             ),
                             const SizedBox(height: 4),
