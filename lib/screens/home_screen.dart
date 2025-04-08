@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'produits_pages/product_managment_screen.dart';
+import 'transactions_pages/transactions_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,11 +18,11 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _pages = [
-      const Center(child: Text('Page des Achats')),
+      const TransactionsScreen(),
       const Center(child: Text('Page Clients')),
       _buildHomePage(),
       const ProductManagementScreen(),
-      const Center(child: Text('Page Inventaire')),
+      const Center(child: Text('Page Plus')),
     ];
   }
 
@@ -251,8 +252,8 @@ class HomeScreenState extends State<HomeScreen> {
         onTap: (index) => setState(() => _currentIndex = index),
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.monetization_on_outlined),
-            label: 'Achats',
+            icon: Icon(Icons.shopping_cart_outlined),
+            label: 'Commandes',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.group_outlined),
@@ -270,8 +271,8 @@ class HomeScreenState extends State<HomeScreen> {
             label: 'Produits',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.inventory_2_outlined),
-            label: 'Stock',
+            icon: Icon(Icons.more_horiz),
+            label: 'Plus',
           ),
         ],
         type: BottomNavigationBarType.fixed,

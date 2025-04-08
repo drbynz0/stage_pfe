@@ -242,6 +242,21 @@ class ProductManagementScreenState extends State<ProductManagementScreen> {
               ),
             ],
           ),
+          //Bouton de scanne produit
+          Positioned(
+            right: 23,
+            bottom: 120,
+            child: IconButton(
+              onPressed: () {
+                // Add your barcode scanning logic here
+              },
+              icon: const Icon(
+                Icons.barcode_reader,
+                color: Color.fromARGB(255, 18, 65, 85),
+                size: 30,
+              ),
+            ),
+          ),
           Positioned(
             right: 15,
             bottom: 60,
@@ -265,6 +280,9 @@ class ProductManagementScreenState extends State<ProductManagementScreen> {
           setState(() {
             products.insert(0, newProduct);
           });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Produit Ajouté avec succès'), duration: const Duration(seconds: 3), backgroundColor: Colors.green,),
+          );        
         },
       ),
     );
@@ -280,7 +298,7 @@ class ProductManagementScreenState extends State<ProductManagementScreen> {
             products.removeAt(index);
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Produit supprimé avec succès')),
+            SnackBar(content: Text('Produit supprimé avec succès'), duration: const Duration(seconds: 3), backgroundColor: Colors.red,),
           );
         },
       ),
@@ -297,7 +315,7 @@ class ProductManagementScreenState extends State<ProductManagementScreen> {
             products[index] = updatedProduct;
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Produit mis à jour avec succès')),
+            SnackBar(content: Text('Produit mis à jour avec succès'), duration: const Duration(seconds: 3), backgroundColor: Colors.green,),
           );
         },
       ),

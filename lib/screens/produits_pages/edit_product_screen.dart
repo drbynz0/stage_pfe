@@ -26,6 +26,10 @@ class EditProductScreenState extends State<EditProductScreen> {
   File? _imageFile;
   bool _imageUpdated = false;
 
+  final List<Product> products = Product.getProducts();
+  // Liste des catégories existantes
+  late List<String> _existingCategories;
+
   @override
   void initState() {
     super.initState();
@@ -34,6 +38,7 @@ class EditProductScreenState extends State<EditProductScreen> {
     _stockController = TextEditingController(text: widget.product.stock.toString());
     _categoryController = TextEditingController(text: widget.product.category);
     _variantsController = TextEditingController(text: widget.product.variants.toString());
+    _existingCategories = products.map((p) => p.category).toSet().toList();
   }
 
   @override
@@ -59,7 +64,9 @@ class EditProductScreenState extends State<EditProductScreen> {
   void _submitForm() {
     if (_nameController.text.isEmpty ||
         _priceController.text.isEmpty ||
-        _stockController.text.isEmpty) {
+        _stockController.text.isEmpty ||
+        _categoryController.text.isEmpty ||
+        _variantsController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Veuillez remplir tous les champs obligatoires')),
       );
@@ -159,6 +166,15 @@ class EditProductScreenState extends State<EditProductScreen> {
                 prefixText: 'DH ',
               ),
               keyboardType: TextInputType.numberWithOptions(decimal: true),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Veuillez entrer un prix';
+                }
+                if (double.tryParse(value) == null) {
+                  return 'Veuillez entrer un nombre valide';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             
@@ -171,20 +187,18 @@ class EditProductScreenState extends State<EditProductScreen> {
                 prefixIcon: Icon(Icons.inventory),
               ),
               keyboardType: TextInputType.number,
+                  validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Veuillez entrer une quantité';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Veuillez entrer un nombre valide';
+                  }
+                  return null;
+                },
             ),
             const SizedBox(height: 16),
-            
-            // Catégorie
-            TextFormField(
-              controller: _categoryController,
-              decoration: const InputDecoration(
-                labelText: 'Catégorie',
-                prefixIcon: Icon(Icons.category),
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            
+
             // Variants
             TextFormField(
               controller: _variantsController,
@@ -194,6 +208,55 @@ class EditProductScreenState extends State<EditProductScreen> {
                 prefixIcon: Icon(Icons.view_list),
               ),
               keyboardType: TextInputType.number,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Veuillez entrer le nombre de variantes';
+                }
+                if (int.tryParse(value) == null) {
+                  return 'Veuillez entrer un nombre valide';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+            // Catégorie
+            TextFormField(
+              controller: _categoryController,
+              decoration: const InputDecoration(
+                labelText: 'Catégorie',
+                prefixIcon: Icon(Icons.category),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                setState(() {});
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Veuillez entrer une catégorie';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Aperçu des catégories existantes
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _existingCategories
+                  .where((category) => category.toLowerCase().contains(_categoryController.text.toLowerCase()))
+                  .map((category) => GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _categoryController.text = category;
+                          });
+                        },
+                        child: Chip(
+                          label: Text(category),
+                          backgroundColor: Colors.blue.shade100,
+                        ),
+                      ))
+                  .toList(),
             ),
             const SizedBox(height: 24),
             

@@ -19,6 +19,7 @@ class AddProductScreenState extends State<AddProductScreen> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _stockController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
+  final TextEditingController _variantsController = TextEditingController();
   File? _imageFile;
 
   final List<Product> products = Product.getProducts();
@@ -120,21 +121,39 @@ class AddProductScreenState extends State<AddProductScreen> {
                 ),
               ),
               const SizedBox(height: 20),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Champ de saisie pour le code du produit
+                  Expanded(
+                    child: TextFormField(
+                      controller: _codeController,
+                      decoration: const InputDecoration(
+                        labelText: 'Code du produit',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.code),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Veuillez entrer un code';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8), // Espacement entre le champ et l'icône
 
-              // Code du produit
-              TextFormField(
-                controller: _codeController,
-                decoration: const InputDecoration(
-                  labelText: 'Code du produit',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.code),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer un code';
-                  }
-                  return null;
-                },
+                  IconButton(
+                    onPressed: () {
+                      // Ajouter la logique de scan de code-barres ici
+                    },
+                    icon: const Icon(
+                      Icons.barcode_reader,
+                      color: Color.fromARGB(255, 18, 65, 85),
+                      size: 30,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
 
@@ -197,6 +216,26 @@ class AddProductScreenState extends State<AddProductScreen> {
               ),
               const SizedBox(height: 16),
 
+              // Variants
+              TextFormField(
+                controller: _variantsController,
+                decoration: const InputDecoration(
+                  labelText: 'Variantes',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.view_list),
+                ),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Veuillez entrer le nombre de variantes';
+                  }
+                  if (int.tryParse(value) == null) {
+                    return 'Veuillez entrer un nombre valide';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
               // Catégorie
               TextFormField(
                 controller: _categoryController,
