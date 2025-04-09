@@ -125,12 +125,18 @@ class InternalOrdersScreenState extends State<InternalOrdersScreen> {
                 Text('${order.date.day}/${order.date.month}/${order.date.year}'),
               ],
             ),
-            Text('Articles: ${order.items.length}'),
+            Row(
+              children: [
+                Text('Articles: ${order.items.length}'),
+                const Spacer(),
+                Text('${order.totalPrice.toStringAsFixed(2)} DH'),
+              ],
+            ),
             Row(
               children: [
                 Text(_getPaymentMethodText(order.paymentMethod)),
                 const Spacer(),
-                Text(_getStatusText(order.status), 
+                Text(_getStatusText(order.status),
                   style: TextStyle(
                     color: order.status == OrderStatus.completed ? Colors.green : Colors.red,
                   ),

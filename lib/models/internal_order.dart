@@ -3,6 +3,7 @@ class InternalOrder {
   final String clientName;
   final DateTime date;
   final PaymentMethod paymentMethod;
+  final double totalPrice;
   final OrderStatus status;
   final List<OrderItem> items;
 
@@ -12,6 +13,7 @@ class InternalOrder {
       clientName: 'Client A',
       date: DateTime.now().subtract(Duration(days: 1)),
       paymentMethod: PaymentMethod.cash,
+      totalPrice: 100.00,
       status: OrderStatus.processing,
       items: [],
     ),
@@ -20,6 +22,7 @@ class InternalOrder {
       clientName: 'Client B',
       date: DateTime.now().subtract(Duration(days: 2)),
       paymentMethod: PaymentMethod.card,
+      totalPrice: 150.00,
       status: OrderStatus.completed,
       items: [],
       ),
@@ -30,6 +33,7 @@ class InternalOrder {
     required this.clientName,
     required this.date,
     required this.paymentMethod,
+    required this.totalPrice,
     required this.status,
     required this.items,
   });
@@ -42,7 +46,7 @@ class InternalOrder {
 class OrderItem {
   final String productId;
   final String productName;
-  final double quantity;
+  int quantity;
   final double unitPrice;
 
   OrderItem({

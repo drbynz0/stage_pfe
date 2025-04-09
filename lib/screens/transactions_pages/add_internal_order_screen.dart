@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/internal_order.dart';
+import '../../models/product.dart';
 
 class AddInternalOrderScreen extends StatefulWidget {
   final Function(InternalOrder) onOrderAdded;
@@ -33,7 +34,212 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
   }
 
   void _addItem() {
-    // Implémenter l'ajout d'articles
+    final TextEditingController searchController = TextEditingController();
+    String selectedCategory = 'Tout';
+    List<Product> filteredProducts = Product.getProducts();
+    List<Map<String, dynamic>> selectedProducts = []; // Contient le produit et sa quantité
+    double totalPrice = 0.0;
+
+    void updateFilteredProducts() {
+      setState(() {
+        filteredProducts = Product.getProducts().where((product) {
+          final matchesSearch = product.name.toLowerCase().contains(searchController.text.toLowerCase());
+          final matchesCategory = selectedCategory == 'Tout' || product.category == selectedCategory;
+          return matchesSearch && matchesCategory;
+        }).toList();
+      });
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              insetPadding: const EdgeInsets.all(20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Ajouter des Articles',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Barre de recherche
+                    TextField(
+                      controller: searchController,
+                      decoration: const InputDecoration(
+                        labelText: 'Rechercher un produit',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                      onChanged: (value) {
+                        updateFilteredProducts();
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Sélecteur de catégorie
+                    DropdownButtonFormField<String>(
+                      value: selectedCategory,
+                      items: ['Tout', ...Product.getProducts().map((p) => p.category).toSet()]
+                          .map((category) => DropdownMenuItem(
+                                value: category,
+                                child: Text(category),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            selectedCategory = value;
+                            updateFilteredProducts();
+                          });
+                        }
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'Filtrer par catégorie',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Liste des produits
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: filteredProducts.length,
+                        itemBuilder: (context, index) {
+                          final product = filteredProducts[index];
+                          final isSelected = selectedProducts.any((item) => item['product'] == product);
+                          final quantityController = TextEditingController(
+                            text: isSelected
+                                ? selectedProducts.firstWhere((item) => item['product'] == product)['quantity'].toString()
+                                : '1',
+                          );
+
+                          return Row(
+                            children: [
+                              // Checkbox
+                              Checkbox(
+                                value: isSelected,
+                                onChanged: (checked) {
+                                  setState(() {
+                                    if (checked == true) {
+                                      selectedProducts.add({'product': product, 'quantity': 1});
+                                      totalPrice += product.price;
+                                    } else {
+                                      final item = selectedProducts.firstWhere((item) => item['product'] == product);
+                                      totalPrice -= item['quantity'] * product.price;
+                                      selectedProducts.remove(item);
+                                    }
+                                  });
+                                },
+                              ),
+
+                              // Nom et prix du produit
+                              Expanded(
+                                child: Text('${product.name} - ${product.price.toStringAsFixed(2)} DH'),
+                              ),
+
+                              // Champ pour la quantité
+                              SizedBox(
+                                width: 60,
+                                child: TextField(
+                                  controller: quantityController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  ),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      final item = selectedProducts.firstWhere((item) => item['product'] == product);
+                                      final oldQuantity = item['quantity'];
+                                      final newQuantity = int.tryParse(value) ?? 1;
+
+                                      // Met à jour la quantité et le prix total
+                                      item['quantity'] = newQuantity;
+                                      totalPrice += (newQuantity - oldQuantity) * product.price;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Affichage du prix total
+                    Text(
+                      'Prix Total : ${totalPrice.toStringAsFixed(2)} DH',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                      textAlign: TextAlign.right,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Boutons d'action
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                            child: const Text('Annuler'),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                for (var item in selectedProducts) {
+                                  _items.add(OrderItem(
+                                    productId: item['product'].code,
+                                    productName: item['product'].name,
+                                    quantity: item['quantity'],
+                                    unitPrice: item['product'].price,
+                                  ));
+                                }
+                              });
+                              Navigator.of(context).pop();
+                              setState(() {
+                              }); // Actualise le formulaire principal
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF004A99),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                            child: const Text('Ajouter', style: TextStyle(color: Colors.white)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   void _submitForm() {
@@ -43,6 +249,7 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
         clientName: _clientNameController.text,
         date: _selectedDate,
         paymentMethod: _paymentMethod,
+        totalPrice: _items.fold(0, (total, item) => total + (item.quantity * item.unitPrice)),
         status: _status,
         items: _items,
       );
@@ -161,9 +368,9 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
               const Text('Articles:', style: TextStyle(fontWeight: FontWeight.bold)),
               ..._items.map((item) => ListTile(
                     title: Text(item.productName),
-                    subtitle: Text('${item.quantity} x ${item.unitPrice}'),
+                    subtitle: Text('${item.quantity * item.unitPrice} DH'),
                     trailing: IconButton(
-                      icon: const Icon(Icons.delete),
+                      icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
                         setState(() {
                           _items.remove(item);

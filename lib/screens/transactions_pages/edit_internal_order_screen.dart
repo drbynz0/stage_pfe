@@ -17,7 +17,6 @@ class EditInternalOrderScreen extends StatefulWidget {
 
 class EditInternalOrderScreenState extends State<EditInternalOrderScreen> {
   late final TextEditingController _clientNameController;
-  late final TextEditingController _paymentMethodController;
   late OrderStatus _status;
   late PaymentMethod _paymentMethod;
   late DateTime _selectedDate;
@@ -83,7 +82,7 @@ class EditInternalOrderScreenState extends State<EditInternalOrderScreen> {
               value: _paymentMethod,
               decoration: const InputDecoration(
                 labelText: 'Méthode de Paiement',
-                border: OutlineInputBorder(), // Ajout de la bordure
+                border: OutlineInputBorder(),
               ),
               items: PaymentMethod.values.map((method) {
                 return DropdownMenuItem(
@@ -122,7 +121,7 @@ class EditInternalOrderScreenState extends State<EditInternalOrderScreen> {
               value: _status,
               decoration: const InputDecoration(
                 labelText: 'Statut',
-                border: OutlineInputBorder(), // Ajout de la bordure
+                border: OutlineInputBorder(),
               ),
               items: OrderStatus.values.map((status) {
                 return DropdownMenuItem(
@@ -139,6 +138,62 @@ class EditInternalOrderScreenState extends State<EditInternalOrderScreen> {
               },
             ),
             const SizedBox(height: 24),
+
+            // Liste des articles
+            const Text(
+              'Articles',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: widget.order.items.length,
+              itemBuilder: (context, index) {
+                final item = widget.order.items[index];
+                final TextEditingController quantityController =
+                    TextEditingController(text: item.quantity.toString());
+
+                return Row(
+                  children: [
+                    // Nom du produit
+                    Expanded(
+                      child: Text(item.productName),
+                    ),
+
+                    // Champ pour la quantité
+                    SizedBox(
+                      width: 60,
+                      child: TextField(
+                        controller: quantityController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            final newQuantity = int.tryParse(value) ?? 1;
+                            item.quantity = newQuantity;
+                          });
+                        },
+                      ),
+                    ),
+
+                    // Bouton pour supprimer l'article
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        setState(() {
+                          widget.order.items.removeAt(index);
+                        });
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 16),
 
             // Boutons d'action
             Row(
@@ -161,6 +216,10 @@ class EditInternalOrderScreenState extends State<EditInternalOrderScreen> {
                         clientName: _clientNameController.text,
                         date: _selectedDate,
                         paymentMethod: _paymentMethod,
+                        totalPrice: widget.order.items.fold(
+                          0.0,
+                          (sum, item) => sum + (item.quantity * item.unitPrice),
+                        ),
                         status: _status,
                         items: widget.order.items,
                       );
@@ -188,7 +247,6 @@ class EditInternalOrderScreenState extends State<EditInternalOrderScreen> {
   @override
   void dispose() {
     _clientNameController.dispose();
-    _paymentMethodController.dispose();
     super.dispose();
   }
 }
