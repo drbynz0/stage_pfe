@@ -48,8 +48,17 @@ class DetailsInternalOrderScreenState extends State<DetailsInternalOrderScreen> 
                 _buildInfoRow('Date', _formatDate(order.date)),
                 _buildInfoRow('Statut', _getStatusText(order.status)),
                 _buildInfoRow('Moyen de paiement', _getPaymentMethodText(order.paymentMethod)),
+                //_buildInfoRow('Prix Total', '${order.items.fold(0.0, (sum, item) => sum + (item.unitPrice * item.quantity)).toStringAsFixed(2)} DH'),
+                //_buildInfoRow('Prix Payé', '${order.paidPrice.toStringAsFixed(2)} DH'),
+                //_buildInfoRow('Prix Restant', '${(order.remainingPrice)} DH'),
+                //_buildInfoRow('Description', order.description != null && order.description!.isNotEmpty ? order.description! : 'Aucune description'),
               ],
             ),
+            const SizedBox(height: 24),
+
+            //Section Prix
+            _buildSectionHeader('Prix'),
+            _buildAllPrice(),
             const SizedBox(height: 24),
 
             // Section Articles
@@ -58,7 +67,7 @@ class DetailsInternalOrderScreenState extends State<DetailsInternalOrderScreen> 
             const SizedBox(height: 16),
 
             // Section Total
-            _buildTotalCard(totalPrice),
+            _buildDescriptionCard(totalPrice),
             const SizedBox(height: 24),
 
             // Boutons d'action
@@ -169,33 +178,83 @@ class DetailsInternalOrderScreenState extends State<DetailsInternalOrderScreen> 
     );
   }
 
-  Widget _buildTotalCard(double total) {
+  Widget _buildDescriptionCard(double total) {
     return Card(
-      color: Colors.blue[50],
+      margin: const EdgeInsets.only(bottom: 8),
+      child: SizedBox(
+        width: double.infinity,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Description', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF003366))),
+              const SizedBox(height: 8),
+              Text(
+                order.description != null && order.description!.isNotEmpty
+                    ? order.description!
+                    : 'Aucune description',
+                style: const TextStyle(fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+      )
+    );
+  }
+
+    Widget _buildAllPrice() {
+    return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            const Text(
-              'TOTAL',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
-              ),
+            _buildAllPriceItem(
+              icon: Icons.attach_money,
+              label: 'Prix total',
+              value: '${order.totalPrice.toStringAsFixed(2)} DH',
+              color: Colors.green,
             ),
-            Text(
-              '${total.toStringAsFixed(2)} DH',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
-              ),
+            _buildAllPriceItem(
+              icon: Icons.attach_money,
+              label: 'Prix payé',
+              value: '${order.paidPrice.toStringAsFixed(2)} DH',
+              color: Colors.blue,
+            ),
+            _buildAllPriceItem(
+              icon: Icons.attach_money,
+              label: 'Valeur restant',
+              value: '${order.remainingPrice.toStringAsFixed(2)} DH',
+              color: Colors.red,
             ),
           ],
         ),
       ),
+    );
+  }
+
+    Widget _buildAllPriceItem({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        Icon(icon, size: 30, color: color),
+        const SizedBox(height: 8),
+        Text(label, style: const TextStyle(fontSize: 12)),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ],
     );
   }
 

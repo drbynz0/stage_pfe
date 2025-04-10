@@ -4,7 +4,10 @@ class InternalOrder {
   final DateTime date;
   final PaymentMethod paymentMethod;
   final double totalPrice;
-   OrderStatus status;
+  final double paidPrice;
+  final double remainingPrice;
+  OrderStatus status;
+  final String? description;
   final List<OrderItem> items;
 
   static final List<InternalOrder> internalOrderList = [
@@ -14,6 +17,8 @@ class InternalOrder {
       date: DateTime.now().subtract(Duration(days: 1)),
       paymentMethod: PaymentMethod.cash,
       totalPrice: 100.00,
+      paidPrice: 50.00,
+      remainingPrice: 50.00,
       status: OrderStatus.processing,
       items: [],
     ),
@@ -23,6 +28,8 @@ class InternalOrder {
       date: DateTime.now().subtract(Duration(days: 2)),
       paymentMethod: PaymentMethod.card,
       totalPrice: 150.00,
+      paidPrice: 150.00,
+      remainingPrice: 0.00,
       status: OrderStatus.completed,
       items: [],
       ),
@@ -34,6 +41,9 @@ class InternalOrder {
     required this.date,
     required this.paymentMethod,
     required this.totalPrice,
+    required this.paidPrice,
+    required this.remainingPrice,
+    this.description,
     required this.status,
     required this.items,
   });

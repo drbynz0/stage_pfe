@@ -216,6 +216,9 @@ class EditInternalOrderScreenState extends State<EditInternalOrderScreen> {
                         clientName: _clientNameController.text,
                         date: _selectedDate,
                         paymentMethod: _paymentMethod,
+                        paidPrice: widget.order.paidPrice,
+                        remainingPrice: widget.order.remainingPrice,
+                        description: widget.order.description,
                         totalPrice: widget.order.items.fold(
                           0.0,
                           (sum, item) => sum + (item.quantity * item.unitPrice),

@@ -19,6 +19,10 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
   final TextEditingController _clientNameController = TextEditingController();
   OrderStatus _status = OrderStatus.pending;
   PaymentMethod _paymentMethod = PaymentMethod.cash;
+  final TextEditingController _totalPriceController = TextEditingController();
+  final TextEditingController _paidPriceController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _remainingPriceController = TextEditingController();
 
   DateTime _selectedDate = DateTime.now();
   final List<OrderItem> _items = [];
@@ -37,17 +41,33 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
     }
   }
 
+  double returnTotalPrice() {
+    return _items.fold(0.0, (sum, item) => sum + (item.unitPrice * item.quantity));
+  }
+  double returnPaidPrice() {
+    return double.tryParse(_paidPriceController.text) ?? 0.0;
+  }
+  double returnRemainingPrice() {
+    return returnTotalPrice() - returnPaidPrice();
+  }
+
 
   void _submitForm() {
+    double totalPrice = returnTotalPrice();
+    double paidPrice = returnPaidPrice();
+    double remainingPrice = returnRemainingPrice();
     if (_formKey.currentState!.validate() && _items.isNotEmpty) {
       final newOrder = InternalOrder(
         id: 'CMD-${DateTime.now().millisecondsSinceEpoch}',
         clientName: _clientNameController.text,
         date: _selectedDate,
         paymentMethod: _paymentMethod,
+        totalPrice: totalPrice,
+        paidPrice: paidPrice,//
+        remainingPrice: remainingPrice,
+        description: _descriptionController.text,
         status: _status,
         items: _items,
-        totalPrice: _items.fold(0.0, (sum, item) => sum + (item.unitPrice * item.quantity)),
       );
       widget.onOrderAdded(newOrder);
       Navigator.of(context).pop();
@@ -164,6 +184,63 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
               ),
               const SizedBox(height: 24),
 
+              // Champ pour le prix total
+              TextFormField(
+                enabled: false,
+                controller: _totalPriceController,
+                decoration: const InputDecoration(
+                  labelText: 'Prix Total',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Champ pour le prix payé
+              TextFormField(
+                controller: _paidPriceController,
+                decoration: const InputDecoration(
+                  labelText: 'Prix Payé',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) {
+                  if (value.isNotEmpty) {
+                    setState(() {
+                      returnPaidPrice();
+                      returnRemainingPrice();
+                      _remainingPriceController.text = returnRemainingPrice().toStringAsFixed(2);
+                    });
+                  } else {
+                    setState(() {
+                      _remainingPriceController.text = returnTotalPrice().toStringAsFixed(2);
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Champ pour le prix restant
+              TextFormField(
+                controller: _remainingPriceController,
+                enabled: false,
+                decoration: const InputDecoration(
+                  labelText: 'Prix Restant',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Champ pour la description
+              TextFormField(
+                controller: _descriptionController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+
               // Liste des articles
               const Text('Articles:', style: TextStyle(fontWeight: FontWeight.bold)),
               ..._items.map((item) => ListTile(
@@ -174,6 +251,8 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
                       onPressed: () {
                         setState(() {
                           _items.remove(item);
+                          _totalPriceController.text = returnTotalPrice().toStringAsFixed(2);
+                          _remainingPriceController.text = returnRemainingPrice().toStringAsFixed(2); 
                         });
                       },
                     ),
@@ -235,6 +314,8 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
           onArticlesAdded: (items) {
             setState(() {
               _items.addAll(items);
+              _totalPriceController.text = returnTotalPrice().toStringAsFixed(2);
+              _remainingPriceController.text = returnRemainingPrice().toStringAsFixed(2);
             });
             Navigator.of(context).pop(items);
           },

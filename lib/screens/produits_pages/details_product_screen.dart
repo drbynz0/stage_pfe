@@ -33,7 +33,7 @@ class DetailsProductScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Section Informations de base
-            _buildSectionHeader('Informations de base'),
+            _buildSectionHeader('Informations'),
             _buildInfoCard(
               children: [
                 _buildInfoRow('Code', product.code),
