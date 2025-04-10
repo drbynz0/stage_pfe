@@ -20,11 +20,10 @@ class AddProductScreenState extends State<AddProductScreen> {
   final TextEditingController _stockController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _variantsController = TextEditingController();
-  File? _imageFile;
+  final TextEditingController _descriptionController = TextEditingController();
+  final List<File?> _imageFiles = List.filled(4, null);
 
   final List<Product> products = Product.getProducts();
-
-  // Liste des catégories existantes
   late List<String> _existingCategories;
 
   @override
@@ -33,26 +32,38 @@ class AddProductScreenState extends State<AddProductScreen> {
     _existingCategories = products.map((p) => p.category).toSet().toList();
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _pickImage(int index) async {
     final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
-        _imageFile = File(pickedFile.path);
+        _imageFiles[index] = File(pickedFile.path);
       });
     }
   }
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
+      // Filtrer les images non null et convertir en chemins
+      final imagePaths = _imageFiles
+          .where((file) => file != null)
+          .map((file) => file!.path)
+          .toList();
+
+      // Si aucune image n'est sélectionnée, utiliser l'image par défaut
+      if (imagePaths.isEmpty) {
+        imagePaths.add('assets/image/icon_shop.jpg');
+      }
+
       final newProduct = Product(
         name: _nameController.text,
         price: double.parse(_priceController.text),
         stock: double.parse(_stockController.text),
         category: _categoryController.text,
-        variants: 1,
+        variants: int.parse(_variantsController.text),
         code: _codeController.text,
         date: "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}",
-        imagePath: _imageFile?.path ?? 'assets/image/icon_shop.jpg',
+        imagePaths: imagePaths,
+        description: _descriptionController.text.isNotEmpty ? [_descriptionController.text] : null,
       );
 
       widget.onProductAdded(newProduct);
@@ -67,6 +78,7 @@ class AddProductScreenState extends State<AddProductScreen> {
     _priceController.dispose();
     _stockController.dispose();
     _categoryController.dispose();
+    _variantsController.dispose();
     super.dispose();
   }
 
@@ -74,9 +86,7 @@ class AddProductScreenState extends State<AddProductScreen> {
   Widget build(BuildContext context) {
     return Dialog(
       insetPadding: const EdgeInsets.all(20),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -87,44 +97,56 @@ class AddProductScreenState extends State<AddProductScreen> {
             children: [
               const Text(
                 'Ajouter un produit',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
 
-              // Champ de téléchargement d'image
-              GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  height: 150,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey),
-                  ),
-                  child: _imageFile == null
-                      ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.add_a_photo, size: 40, color: Colors.grey),
-                            SizedBox(height: 8),
-                            Text('Ajouter une image'),
-                          ],
-                        )
-                      : ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.file(_imageFile!, fit: BoxFit.cover),
-                        ),
+              // Section pour les images (4 emplacements)
+              const Text('Images du produit (max 4):', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                  childAspectRatio: 1,
                 ),
+                itemCount: 4,
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () => _pickImage(index),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey),
+                      ),
+                      child: _imageFiles[index] == null
+                          ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.add_a_photo, size: 30, color: Colors.grey),
+                                const SizedBox(height: 4),
+                                Text('Image ${index + 1}'),
+                              ],
+                            )
+                          : ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.file(_imageFiles[index]!, fit: BoxFit.cover),
+                            ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 20),
+
+              // ... (le reste de votre formulaire reste inchangé) ...
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Champ de saisie pour le code du produit
                   Expanded(
                     child: TextFormField(
                       controller: _codeController,
@@ -141,8 +163,7 @@ class AddProductScreenState extends State<AddProductScreen> {
                       },
                     ),
                   ),
-                  const SizedBox(width: 8), // Espacement entre le champ et l'icône
-
+                  const SizedBox(width: 8),
                   IconButton(
                     onPressed: () {
                       // Ajouter la logique de scan de code-barres ici
@@ -157,7 +178,6 @@ class AddProductScreenState extends State<AddProductScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Nom du produit
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
@@ -174,7 +194,6 @@ class AddProductScreenState extends State<AddProductScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Prix
               TextFormField(
                 controller: _priceController,
                 decoration: const InputDecoration(
@@ -195,7 +214,6 @@ class AddProductScreenState extends State<AddProductScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Stock
               TextFormField(
                 controller: _stockController,
                 decoration: const InputDecoration(
@@ -216,7 +234,6 @@ class AddProductScreenState extends State<AddProductScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Variants
               TextFormField(
                 controller: _variantsController,
                 decoration: const InputDecoration(
@@ -236,7 +253,7 @@ class AddProductScreenState extends State<AddProductScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              // Catégorie
+
               TextFormField(
                 controller: _categoryController,
                 decoration: const InputDecoration(
@@ -256,7 +273,6 @@ class AddProductScreenState extends State<AddProductScreen> {
               ),
               const SizedBox(height: 8),
 
-              // Aperçu des catégories existantes
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -276,8 +292,18 @@ class AddProductScreenState extends State<AddProductScreen> {
                     .toList(),
               ),
               const SizedBox(height: 24),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.description),
+                ),
+                keyboardType: TextInputType.number,
+                maxLines: 5,
+              ),
+              const SizedBox(height: 24),
 
-              // Boutons d'action
               Row(
                 children: [
                   Expanded(
@@ -285,9 +311,9 @@ class AddProductScreenState extends State<AddProductScreen> {
                       onPressed: () => Navigator.of(context).pop(),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        minimumSize: const Size(double.infinity, 50),
                       ),
-                      child: const Text('Annuler'),
-                    ),
+                      child: const Text('Annuler', style: TextStyle(fontSize: 16)),               ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(

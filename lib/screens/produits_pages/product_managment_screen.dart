@@ -3,6 +3,7 @@ import 'add_product_screen.dart';
 import '/models/product.dart';
 import 'delete_product_screen.dart';
 import 'edit_product_screen.dart';
+import 'details_product_screen.dart';
 
 class ProductManagementScreen extends StatefulWidget {
   const ProductManagementScreen({super.key});
@@ -125,79 +126,90 @@ class ProductManagementScreenState extends State<ProductManagementScreen> {
                   itemCount: paginatedProducts.length,
                   itemBuilder: (context, index) {
                     final product = paginatedProducts[index];
-                    return Card(
-                      color: const Color.fromARGB(255, 194, 224, 240),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(8),
-                        leading: Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: Colors.blue[50],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.asset(
-                              product.imagePath ?? 'assets/image/icon_shop.jpg',
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Icon(Icons.image_not_supported, color: Colors.grey);
-                              },
+                    return InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DetailsProductScreen(
+                              product: product,
                             ),
                           ),
+                        ); 
+                        },
+                      child: Card(
+                        color: const Color.fromARGB(255, 194, 224, 240),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
                         ),
-                        title: Text(
-                          product.name,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text('${product.variants} variants • ${product.category}'),
-                              ],
+                        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(8),
+                          leading: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: Colors.blue[50],
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Text(
-                                  '${product.stock} en stock',
-                                  style: TextStyle(
-                                    color: product.stock <= 10 ? Colors.red : Colors.green,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.asset(
+                                product.imagePaths?[0] ?? 'assets/image/icon_shop.jpg',
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(Icons.image_not_supported, color: Colors.grey);
+                                },
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            product.name,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text('${product.variants} variants • ${product.category}'),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Text(
+                                    '${product.stock} en stock',
+                                    style: TextStyle(
+                                      color: product.stock <= 10 ? Colors.red : Colors.green,
+                                    ),
                                   ),
-                                ),
-                                const Spacer(),
-                                Text(
-                                  '${product.price.toStringAsFixed(2)} DH',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
+                                  const Spacer(),
+                                  Text(
+                                    '${product.price.toStringAsFixed(2)} DH',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
+                                ],
+                              ),
+                            ],
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit, color: Colors.blue),
+                                onPressed: () => _showEditDialog(index),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed:  () => _showDeleteDialog(index),
+                              ),
+                            ],
+                          ),
                         ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () => _showEditDialog(index),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed:  () => _showDeleteDialog(index),
-                            ),
-                          ],
-                        ),
-
                       ),
                     );
                   },

@@ -3,6 +3,7 @@ import '/models/internal_order.dart';
 import 'delete_order_dialog.dart';
 import 'edit_internal_order_screen.dart';
 import 'add_internal_order_screen.dart';
+import 'details_internal_order.dart';
 
 class InternalOrdersScreen extends StatefulWidget {
   const InternalOrdersScreen({super.key});
@@ -110,53 +111,76 @@ class InternalOrdersScreenState extends State<InternalOrdersScreen> {
   }
 
   Widget _buildOrderCard(InternalOrder order) {
-    return Card(
-      color: const Color.fromARGB(255, 194, 224, 240),
-      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        title: Text(order.clientName, style: TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(order.id),
-                const Spacer(),
-                Text('${order.date.day}/${order.date.month}/${order.date.year}'),
-              ],
-            ),
-            Row(
-              children: [
-                Text('Articles: ${order.items.length}'),
-                const Spacer(),
-                Text('${order.totalPrice.toStringAsFixed(2)} DH'),
-              ],
-            ),
-            Row(
-              children: [
-                Text(_getPaymentMethodText(order.paymentMethod)),
-                const Spacer(),
-                Text(_getStatusText(order.status),
-                  style: TextStyle(
-                    color: order.status == OrderStatus.completed ? Colors.green : Colors.red,
-                  ),
-                ),
-              ],
-            )
-          ]
+    return GestureDetector(
+      onTap: () async {
+      // Navigation vers l'écran des détails
+      final updatedOrder = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DetailsInternalOrderScreen(order: order),
         ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(Icons.edit, color: Colors.blue),
-              onPressed: () => _showEditDialog(order),
-            ),
-            IconButton(
-              icon: Icon(Icons.delete, color: Colors.red),
-              onPressed: () => _showDeleteDialog(order),
-            ),
-          ],
+      );
+
+      // Mettre à jour la liste si une commande mise à jour est renvoyée
+      if (updatedOrder != null) {
+        setState(() {
+          final index = _orders.indexWhere((o) => o.id == updatedOrder.id);
+          if (index != -1) {
+            _orders[index] = updatedOrder; // Mettre à jour l'état local
+          }
+        });
+      }
+    },
+      child: Card(
+        color: const Color.fromARGB(255, 194, 224, 240),
+        margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: ListTile(
+          title: Text(order.clientName, style: TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(order.id),
+                  const Spacer(),
+                  Text('${order.date.day}/${order.date.month}/${order.date.year}'),
+                ],
+              ),
+              Row(
+                children: [
+                  Text('Articles: ${order.items.length}'),
+                  const Spacer(),
+                  Text('${order.totalPrice.toStringAsFixed(2)} DH'),
+                ],
+              ),
+              Row(
+                children: [
+                  Text(_getPaymentMethodText(order.paymentMethod)),
+                  const Spacer(),
+                  Text(
+                    _getStatusText(order.status),
+                    style: TextStyle(
+                      color: order.status == OrderStatus.completed ? Colors.green : Colors.red,
+                    ),
+                  ),
+
+                ],
+              )
+            ]
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: Icon(Icons.edit, color: Colors.blue),
+                onPressed: () => _showEditDialog(order),
+              ),
+              IconButton(
+                icon: Icon(Icons.delete, color: Colors.red),
+                onPressed: () => _showDeleteDialog(order),
+              ),
+            ],
+          ),
         ),
       ),
     );

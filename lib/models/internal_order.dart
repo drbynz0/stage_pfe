@@ -4,7 +4,7 @@ class InternalOrder {
   final DateTime date;
   final PaymentMethod paymentMethod;
   final double totalPrice;
-  final OrderStatus status;
+   OrderStatus status;
   final List<OrderItem> items;
 
   static final List<InternalOrder> internalOrderList = [
@@ -46,7 +46,7 @@ class InternalOrder {
 class OrderItem {
   final String productId;
   final String productName;
-  int quantity;
+   double quantity;
   final double unitPrice;
 
   OrderItem({

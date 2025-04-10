@@ -6,17 +6,19 @@ class Product {
   final double stock;
   final double price;
   final String date;
-  final String? imagePath;
+  final List<String>? imagePaths;
+  final List<String>? description;
 
-    static final List<Product> productList = [
+  static final List<Product> productList = [
     Product(
       name: "Handmade Pouch",
       variants: 3,
-      code: "302012",
+      code: "6111243860352",
       category: "Bgg & Pouch",
       stock: 10,
       price: 121.00,
       date: "29 Dec 2022",
+      imagePaths: ["assets/image/icon_shop.jpg"],
     ),
     Product(
       name: "Smartwatch E2",
@@ -26,10 +28,90 @@ class Product {
       stock: 20.4,
       price: 590.00,
       date: "24 Dec 2022",
-      imagePath: "assets/image/welcome.png",
+      imagePaths: ["assets/image/icon_shop.jpg"],
     ),
-    // ... (autres produits restent identiques)
+    Product(
+      name: "Wireless Earbuds",
+      variants: 5,
+      code: "402034",
+      category: "Electronics",
+      stock: 15,
+      price: 99.99,
+      date: "10 Jan 2023",
+      imagePaths: ["assets/image/icon_shop.jpg"],
+    ),
+    Product(
+      name: "Yoga Mat",
+      variants: 2,
+      code: "509876",
+      category: "Fitness",
+      stock: 35,
+      price: 25.50,
+      date: "5 Feb 2023",
+      imagePaths: ["assets/image/icon_shop.jpg"],
+    ),
+    Product(
+      name: "Gaming Mouse",
+      variants: 3,
+      code: "601233",
+      category: "Accessories",
+      stock: 50,
+      price: 49.99,
+      date: "15 Jan 2023",
+      imagePaths: ["assets/image/icon_shop.jpg"],
+    ),
+    Product(
+      name: "Bluetooth Speaker",
+      variants: 4,
+      code: "702145",
+      category: "Electronics",
+      stock: 30,
+      price: 75.00,
+      date: "22 Dec 2022",
+      imagePaths: ["assets/image/icon_shop.jpg"],
+    ),
+    Product(
+      name: "Coffee Maker",
+      variants: 2,
+      code: "806321",
+      category: "Home Appliances",
+      stock: 25,
+      price: 150.00,
+      date: "1 Feb 2023",
+      imagePaths: ["assets/image/icon_shop.jpg"],
+    ),
+    Product(
+      name: "Travel Backpack",
+      variants: 3,
+      code: "909876",
+      category: "Bags",
+      stock: 40,
+      price: 120.00,
+      date: "18 Jan 2023",
+      imagePaths: ["assets/image/icon_shop.jpg"],
+    ),
+    Product(
+      name: "Laptop Stand",
+      variants: 1,
+      code: "103045",
+      category: "Accessories",
+      stock: 55,
+      price: 45.00,
+      date: "3 Jan 2023",
+      imagePaths: ["assets/image/icon_shop.jpg"],
+    ),
+    Product(
+      name: "Smartphone Case",
+      variants: 6,
+      code: "204567",
+      category: "Accessories",
+      stock: 100,
+      price: 15.99,
+      date: "28 Feb 2023",
+      imagePaths: ["assets/image/icon_shop.jpg"],
+    ),
   ];
+
 
   Product({
     required this.name,
@@ -39,7 +121,8 @@ class Product {
     required this.stock,
     required this.price,
     required this.date,
-    this.imagePath,
+    this.imagePaths,
+    this.description,
   });
 
   static List<Product> getProducts() {

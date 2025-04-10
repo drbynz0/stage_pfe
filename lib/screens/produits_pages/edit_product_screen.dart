@@ -81,7 +81,7 @@ class EditProductScreenState extends State<EditProductScreen> {
       variants: int.parse(_variantsController.text),
       code: widget.product.code,
       date: widget.product.date,
-      imagePath: _imageUpdated ? _imageFile?.path : widget.product.imagePath,
+      imagePaths: _imageUpdated ? (_imageFile != null ? [_imageFile!.path] : null) : widget.product.imagePaths,
     );
 
     widget.onProductUpdated(updatedProduct);
@@ -126,12 +126,15 @@ class EditProductScreenState extends State<EditProductScreen> {
                         borderRadius: BorderRadius.circular(8),
                         child: Image.file(_imageFile!, fit: BoxFit.cover),
                       )
-                    : widget.product.imagePath != null
+                    : widget.product.imagePaths != null
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: Image.file(
-                              File(widget.product.imagePath!),
+                            child: Image.asset(
+                              widget.product.imagePaths?[0] ?? 'assets/image/icon_shop.jpg',
                               fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.image_not_supported, color: Colors.grey);
+                              },
                             ),
                           )
                         : Column(
@@ -280,7 +283,7 @@ class EditProductScreenState extends State<EditProductScreen> {
                       backgroundColor: const Color(0xFF004A99),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text('Enregistrer', 
+                    child: const Text('Enregistrer',
                       style: TextStyle(color: Colors.white),
                     ),
                   ),

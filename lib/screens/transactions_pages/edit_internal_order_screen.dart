@@ -173,7 +173,7 @@ class EditInternalOrderScreenState extends State<EditInternalOrderScreen> {
                         ),
                         onChanged: (value) {
                           setState(() {
-                            final newQuantity = int.tryParse(value) ?? 1;
+                            final newQuantity = double.tryParse(value) ?? 1;
                             item.quantity = newQuantity;
                           });
                         },
