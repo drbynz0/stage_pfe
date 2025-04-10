@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/internal_order.dart';
+import '../../models/product.dart';
+import 'add_intern_article_screen.dart';
 
 class EditInternalOrderScreen extends StatefulWidget {
   final InternalOrder order;
@@ -16,10 +18,17 @@ class EditInternalOrderScreen extends StatefulWidget {
 }
 
 class EditInternalOrderScreenState extends State<EditInternalOrderScreen> {
+  final List<Product> _availableProducts = Product.getProducts();
+  final _formKey = GlobalKey<FormState>();
   late final TextEditingController _clientNameController;
   late OrderStatus _status;
   late PaymentMethod _paymentMethod;
+  late final TextEditingController _totalPriceController;
+  late final TextEditingController _paidPriceController;
+  late final TextEditingController _descriptionController;
+  late final TextEditingController _remainingPriceController;
   late DateTime _selectedDate;
+  late List<OrderItem> _items;
 
   @override
   void initState() {
@@ -27,20 +36,75 @@ class EditInternalOrderScreenState extends State<EditInternalOrderScreen> {
     _clientNameController = TextEditingController(text: widget.order.clientName);
     _status = widget.order.status;
     _paymentMethod = widget.order.paymentMethod;
+    _totalPriceController = TextEditingController(text: widget.order.totalPrice.toStringAsFixed(2));
+    _paidPriceController = TextEditingController(text: widget.order.paidPrice.toStringAsFixed(2));
+    _descriptionController = TextEditingController(text: widget.order.description);
+    _remainingPriceController = TextEditingController(text: widget.order.remainingPrice.toStringAsFixed(2));
     _selectedDate = widget.order.date;
+    _items = List.from(widget.order.items);
+  }
+
+  @override
+  void dispose() {
+    _clientNameController.dispose();
+    _paidPriceController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    final DateTime? pickedDate = await showDatePicker(
+    final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2025),
     );
-    if (pickedDate != null && pickedDate != _selectedDate) {
+    if (picked != null && picked != _selectedDate) {
       setState(() {
-        _selectedDate = pickedDate;
+        _selectedDate = picked;
       });
+    }
+  }
+
+  double returnTotalPrice() {
+    return _items.fold(0.0, (sum, item) => sum + (item.unitPrice * item.quantity));
+  }
+
+  double returnPaidPrice() {
+    return double.tryParse(_paidPriceController.text) ?? 0.0;
+  }
+
+  double returnRemainingPrice() {
+    return returnTotalPrice() - returnPaidPrice();
+  }
+
+  void _submitForm() {
+    double totalPrice = returnTotalPrice();
+    double paidPrice = returnPaidPrice();
+    double remainingPrice = returnRemainingPrice();
+    
+    if (_formKey.currentState!.validate() && _items.isNotEmpty) {
+      final updatedOrder = InternalOrder(
+        id: widget.order.id,
+        clientName: _clientNameController.text,
+        date: _selectedDate,
+        paymentMethod: _paymentMethod,
+        totalPrice: totalPrice,
+        paidPrice: paidPrice,
+        remainingPrice: remainingPrice,
+        description: _descriptionController.text,
+        status: _status,
+        items: _items,
+      );
+      widget.onOrderUpdated(updatedOrder);
+      Navigator.of(context).pop();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Veuillez ajouter au moins un article'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -53,203 +117,242 @@ class EditInternalOrderScreenState extends State<EditInternalOrderScreen> {
       ),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Modifier Commande',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Modifier Commande Client',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Champ pour le nom du client
-            TextFormField(
-              controller: _clientNameController,
-              decoration: const InputDecoration(
-                labelText: 'Nom du Client',
-                border: OutlineInputBorder(),
+              // Champ pour le nom du client
+              TextFormField(
+                controller: _clientNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Nom du Client*',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Ce champ est obligatoire';
+                  }
+                  return null;
+                },
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Sélecteur de méthode de paiement
-            DropdownButtonFormField<PaymentMethod>(
-              value: _paymentMethod,
-              decoration: const InputDecoration(
-                labelText: 'Méthode de Paiement',
-                border: OutlineInputBorder(),
-              ),
-              items: PaymentMethod.values.map((method) {
-                return DropdownMenuItem(
-                  value: method,
-                  child: Text(method.toString().split('.').last),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _paymentMethod = value;
-                  });
-                }
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Sélecteur de date
-            Row(
-              children: [
-                const Text('Date de la commande:'),
-                const SizedBox(width: 8),
-                TextButton(
-                  onPressed: () => _selectDate(context),
-                  child: Text(
-                    '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+              // Sélecteur de date
+              InkWell(
+                onTap: () => _selectDate(context),
+                child: InputDecorator(
+                  decoration: const InputDecoration(
+                    labelText: 'Date de Commande',
+                    border: OutlineInputBorder(),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}'),
+                      const Icon(Icons.calendar_today),
+                    ],
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Sélecteur de statut
-            DropdownButtonFormField<OrderStatus>(
-              value: _status,
-              decoration: const InputDecoration(
-                labelText: 'Statut',
-                border: OutlineInputBorder(),
               ),
-              items: OrderStatus.values.map((status) {
-                return DropdownMenuItem(
-                  value: status,
-                  child: Text(status.toString().split('.').last),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
+              const SizedBox(height: 16),
+
+              // Sélecteur de statut
+              DropdownButtonFormField<OrderStatus>(
+                value: _status,
+                items: OrderStatus.values.map((status) {
+                  return DropdownMenuItem(
+                    value: status,
+                    child: Text(_getStatusText(status)),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _status = value;
+                    });
+                  }
+                },
+                decoration: const InputDecoration(
+                  labelText: 'Statut',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Sélecteur de méthode de paiement
+              DropdownButtonFormField<PaymentMethod>(
+                value: _paymentMethod,
+                items: PaymentMethod.values.map((method) {
+                  return DropdownMenuItem(
+                    value: method,
+                    child: Text(method.toString().split('.').last),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _paymentMethod = value;
+                    });
+                  }
+                },
+                decoration: const InputDecoration(
+                  labelText: 'Moyen de Paiement*',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Champ pour le prix total
+              TextFormField(
+                enabled: false,
+                controller: _totalPriceController,
+                decoration: const InputDecoration(
+                  labelText: 'Prix Total',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Champ pour le prix payé
+              TextFormField(
+                controller: _paidPriceController,
+                decoration: const InputDecoration(
+                  labelText: 'Prix Payé',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) {
                   setState(() {
-                    _status = value;
+                    _remainingPriceController.text = returnRemainingPrice().toStringAsFixed(2);
                   });
-                }
-              },
-            ),
-            const SizedBox(height: 24),
+                },
+              ),
+              const SizedBox(height: 16),
 
-            // Liste des articles
-            const Text(
-              'Articles',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: widget.order.items.length,
-              itemBuilder: (context, index) {
-                final item = widget.order.items[index];
-                final TextEditingController quantityController =
-                    TextEditingController(text: item.quantity.toString());
+              // Champ pour le prix restant
+              TextFormField(
+                controller: _remainingPriceController,
+                enabled: false,
+                decoration: const InputDecoration(
+                  labelText: 'Prix Restant',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
 
-                return Row(
-                  children: [
-                    // Nom du produit
-                    Expanded(
-                      child: Text(item.productName),
-                    ),
+              // Champ pour la description
+              TextFormField(
+                controller: _descriptionController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
 
-                    // Champ pour la quantité
-                    SizedBox(
-                      width: 60,
-                      child: TextField(
-                        controller: quantityController,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        ),
-                        onChanged: (value) {
-                          setState(() {
-                            final newQuantity = double.tryParse(value) ?? 1;
-                            item.quantity = newQuantity;
-                          });
-                        },
-                      ),
-                    ),
-
-                    // Bouton pour supprimer l'article
-                    IconButton(
+              // Liste des articles
+              const Text('Articles:', style: TextStyle(fontWeight: FontWeight.bold)),
+              ..._items.map((item) => ListTile(
+                    title: Text(item.productName),
+                    subtitle: Text('${(item.quantity * item.unitPrice).toStringAsFixed(2)} DH (${item.quantity})'),
+                    trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
                         setState(() {
-                          widget.order.items.removeAt(index);
+                          _items.remove(item);
+                          _totalPriceController.text = returnTotalPrice().toStringAsFixed(2);
+                          _remainingPriceController.text = returnRemainingPrice().toStringAsFixed(2);
                         });
                       },
                     ),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 16),
+                  )),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 17, 109, 207),
+                ),
+                onPressed: () => _showAddArticleDialog(),
+                child: const Text('Ajouter un Article', style: TextStyle(color: Colors.white)),
+              ),
+              const SizedBox(height: 32),
 
-            // Boutons d'action
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text('Annuler'),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      final updatedOrder = InternalOrder(
-                        id: widget.order.id,
-                        clientName: _clientNameController.text,
-                        date: _selectedDate,
-                        paymentMethod: _paymentMethod,
-                        paidPrice: widget.order.paidPrice,
-                        remainingPrice: widget.order.remainingPrice,
-                        description: widget.order.description,
-                        totalPrice: widget.order.items.fold(
-                          0.0,
-                          (sum, item) => sum + (item.quantity * item.unitPrice),
-                        ),
-                        status: _status,
-                        items: widget.order.items,
-                      );
-                      widget.onOrderUpdated(updatedOrder);
-                      Navigator.of(context).pop();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF004A99),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text(
-                      'Enregistrer',
-                      style: TextStyle(color: Colors.white),
+              // Boutons d'action
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        minimumSize: const Size(double.infinity, 50),
+                      ),
+                      child: const Text('Annuler', style: TextStyle(fontSize: 16)),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _submitForm,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: const Color(0xFF004A99),
+                        minimumSize: const Size(double.infinity, 50),
+                      ),
+                      child: const Text('Enregistrer', style: TextStyle(color: Colors.white, fontSize: 16)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  @override
-  void dispose() {
-    _clientNameController.dispose();
-    super.dispose();
+  void _showAddArticleDialog() async {
+    final List<OrderItem>? selectedItems = await showDialog<List<OrderItem>>(
+      context: context,
+      builder: (context) => Dialog(
+        child: AddInternArticleDialog(
+          availableProducts: _availableProducts,
+          onArticlesAdded: (items) => Navigator.of(context).pop(items),
+        ),
+      ),
+      useRootNavigator: false,
+    );
+
+    if (selectedItems != null && selectedItems.isNotEmpty) {
+      setState(() {
+        _items.addAll(selectedItems);
+        _totalPriceController.text = returnTotalPrice().toStringAsFixed(2);
+        _remainingPriceController.text = returnRemainingPrice().toStringAsFixed(2);
+      });
+    }
+  }
+
+  String _getStatusText(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.pending:
+        return 'En attente';
+      case OrderStatus.processing:
+        return 'En traitement';
+      case OrderStatus.completed:
+        return 'Terminée';
+      case OrderStatus.cancelled:
+        return 'Annulée';
+    }
   }
 }

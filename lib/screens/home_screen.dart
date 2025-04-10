@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'produits_pages/product_managment_screen.dart';
 import 'transactions_pages/transactions_screen.dart';
+import 'client_pages/client_management_screen.dart';
+import 'plus_pages/more_options_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,10 +21,10 @@ class HomeScreenState extends State<HomeScreen> {
     super.initState();
     _pages = [
       const TransactionsScreen(),
-      const Center(child: Text('Page Clients')),
+      const ClientManagementScreen(),
       _buildHomePage(),
       const ProductManagementScreen(),
-      const Center(child: Text('Page Plus')),
+      const MoreOptionsScreen(),
     ];
   }
 

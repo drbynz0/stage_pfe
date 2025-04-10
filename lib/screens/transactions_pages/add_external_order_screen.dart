@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/external_order.dart';
+import 'add_extern_article_screen.dart';
+import '../../models/product.dart';
+
 
 class AddExternalOrderScreen extends StatefulWidget {
   final Function(ExternalOrder) onOrderAdded;
@@ -11,10 +14,17 @@ class AddExternalOrderScreen extends StatefulWidget {
 }
 
 class AddExternalOrderScreenState extends State<AddExternalOrderScreen> {
+  // Liste de produits disponibles (remplacez par vos données réelles)
+  final List<Product> _availableProducts = Product.getProducts();
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _suplierNameController = TextEditingController();
+  final TextEditingController _supplierNameController = TextEditingController();
   OrderStatus _status = OrderStatus.pending;
   PaymentMethod _paymentMethod = PaymentMethod.cash;
+  final TextEditingController _totalPriceController = TextEditingController();
+  final TextEditingController _paidPriceController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _remainingPriceController = TextEditingController();
+
   DateTime _selectedDate = DateTime.now();
   final List<OrderItem> _items = [];
 
@@ -32,22 +42,44 @@ class AddExternalOrderScreenState extends State<AddExternalOrderScreen> {
     }
   }
 
-  void _addItem() {
-    // Implémenter l'ajout d'articles
+  double returnTotalPrice() {
+    return _items.fold(0.0, (sum, item) => sum + (item.unitPrice * item.quantity));
+  }
+
+  double returnPaidPrice() {
+    return double.tryParse(_paidPriceController.text) ?? 0.0;
+  }
+
+  double returnRemainingPrice() {
+    return returnTotalPrice() - returnPaidPrice();
   }
 
   void _submitForm() {
-    if (_formKey.currentState!.validate()) {
+    double totalPrice = returnTotalPrice();
+    double paidPrice = returnPaidPrice();
+    double remainingPrice = returnRemainingPrice();
+    if (_formKey.currentState!.validate() && _items.isNotEmpty) {
       final newOrder = ExternalOrder(
-        id: 'CMD-${DateTime.now().millisecondsSinceEpoch}',
-        supplierName: _suplierNameController.text,
+        id: 'EXT-${DateTime.now().millisecondsSinceEpoch}',
+        supplierName: _supplierNameController.text,
         date: _selectedDate,
         paymentMethod: _paymentMethod,
+        totalPrice: totalPrice,
+        paidPrice: paidPrice,
+        remainingPrice: remainingPrice,
+        description: _descriptionController.text,
         status: _status,
         items: _items,
       );
       widget.onOrderAdded(newOrder);
       Navigator.of(context).pop();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Veuillez ajouter au moins un article'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -67,7 +99,7 @@ class AddExternalOrderScreenState extends State<AddExternalOrderScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                'Nouvelle Commande Client',
+                'Nouvelle Commande Fournisseur',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -76,9 +108,9 @@ class AddExternalOrderScreenState extends State<AddExternalOrderScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Champ pour le nom du client
+              // Champ pour le nom du fournisseur
               TextFormField(
-                controller: _suplierNameController,
+                controller: _supplierNameController,
                 decoration: const InputDecoration(
                   labelText: 'Nom du Fournisseur*',
                   border: OutlineInputBorder(),
@@ -157,39 +189,100 @@ class AddExternalOrderScreenState extends State<AddExternalOrderScreen> {
               ),
               const SizedBox(height: 24),
 
+              // Champ pour le prix total
+              TextFormField(
+                enabled: false,
+                controller: _totalPriceController,
+                decoration: const InputDecoration(
+                  labelText: 'Prix Total',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Champ pour le prix payé
+              TextFormField(
+                controller: _paidPriceController,
+                decoration: const InputDecoration(
+                  labelText: 'Prix Payé',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) {
+                  if (value.isNotEmpty) {
+                    setState(() {
+                      returnPaidPrice();
+                      returnRemainingPrice();
+                      _remainingPriceController.text = returnRemainingPrice().toStringAsFixed(2);
+                    });
+                  } else {
+                    setState(() {
+                      _remainingPriceController.text = returnTotalPrice().toStringAsFixed(2);
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Champ pour le prix restant
+              TextFormField(
+                controller: _remainingPriceController,
+                enabled: false,
+                decoration: const InputDecoration(
+                  labelText: 'Prix Restant',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Champ pour la description
+              TextFormField(
+                controller: _descriptionController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+
               // Liste des articles
               const Text('Articles:', style: TextStyle(fontWeight: FontWeight.bold)),
               ..._items.map((item) => ListTile(
                     title: Text(item.productName),
-                    subtitle: Text('${item.quantity} x ${item.unitPrice}'),
+                    subtitle: Text('${item.quantity * item.unitPrice} DH (${item.quantity})'),
                     trailing: IconButton(
-                      icon: const Icon(Icons.delete),
+                      icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
                         setState(() {
                           _items.remove(item);
+                          _totalPriceController.text = returnTotalPrice().toStringAsFixed(2);
+                          _remainingPriceController.text = returnRemainingPrice().toStringAsFixed(2);
                         });
                       },
                     ),
                   )),
               ElevatedButton(
-                onPressed: _addItem,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 40, 121, 187),
-                  minimumSize: const Size(double.infinity, 50),
+                  backgroundColor: const Color.fromARGB(255, 17, 109, 207),
                 ),
+                onPressed: () => _showAddArticleDialog(),
                 child: const Text('Ajouter un Article', style: TextStyle(color: Colors.white)),
               ),
               const SizedBox(height: 32),
 
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: OutlinedButton.styleFrom(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        minimumSize: const Size(double.infinity, 50),
                       ),
-                      child: const Text('Annuler'),
+                      child: const Text('Annuler', style: TextStyle(fontSize: 16)),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -197,10 +290,11 @@ class AddExternalOrderScreenState extends State<AddExternalOrderScreen> {
                     child: ElevatedButton(
                       onPressed: _submitForm,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF004A99),
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: const Color(0xFF004A99),
+                        minimumSize: const Size(double.infinity, 50),
                       ),
-                      child: const Text('Enregistrer', style: TextStyle(fontSize: 16, color: Colors.white)),
+                      child: const Text('Enregistrer', style: TextStyle(color: Colors.white, fontSize: 16)),
                     ),
                   ),
                 ],
@@ -209,6 +303,26 @@ class AddExternalOrderScreenState extends State<AddExternalOrderScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showAddArticleDialog() async {
+    await showDialog<List<OrderItem>>(
+      context: context,
+      builder: (context) => Dialog(
+        child: AddExternalArticleDialog(
+          availableProducts: _availableProducts,
+          onArticlesAdded: (items) {
+            setState(() {
+              _items.addAll(items);
+              _totalPriceController.text = returnTotalPrice().toStringAsFixed(2);
+              _remainingPriceController.text = returnRemainingPrice().toStringAsFixed(2);
+            });
+            Navigator.of(context).pop(items);
+          },
+        ),
+      ),
+      useRootNavigator: false, // Important
     );
   }
 
