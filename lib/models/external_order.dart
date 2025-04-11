@@ -7,7 +7,7 @@ class ExternalOrder {
   final double paidPrice;
   final double remainingPrice;
   final String? description;
-  final OrderStatus status;
+  OrderStatus status;
   final List<OrderItem> items;
 
     static final List<ExternalOrder> externalOrderList = [

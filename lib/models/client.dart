@@ -5,6 +5,65 @@ class Client {
   final String phone;
   final String address;
 
+    static final List<Client> _clients = [
+    Client(
+      id: '1',
+      name: 'Ahmed Amine',
+      email: 'ahmed.amine@example.com',
+      phone: '0600000000',
+      address: 'Casablanca',
+    ),
+    Client(
+      id: '2',
+      name: 'Sara Idrissi',
+      email: 'sara.idrissi@example.com',
+      phone: '0611111111',
+      address: 'Rabat',
+    ),
+    Client(
+      id: '3',
+      name: 'Mohamed El Youssfi',
+      email: 'mohamed.youssfi@example.com',
+      phone: '0622222222',
+      address: 'Marrakech',
+    ),
+    Client(
+      id: '4',
+      name: 'Fatima Zahra',
+      email: 'fatima.zahra@example.com',
+      phone: '0633333333',
+      address: 'Fès',
+    ),
+    Client(
+      id: '5',
+      name: 'Youssef Benali',
+      email: 'youssef.benali@example.com',
+      phone: '0644444444',
+      address: 'Tanger',
+    ),
+    Client(
+      id: '6',
+      name: 'Khadija Benslimane',
+      email: 'khadija.benslimane@example.com',
+      phone: '0655555555',
+      address: 'Agadir',
+    ),
+    Client(
+      id: '7',
+      name: 'Omar Lahlou',
+      email: 'omar.lahlou@example.com',
+      phone: '0666666666',
+      address: 'Oujda',
+    ),
+    Client(
+      id: '8',
+      name: 'Salma Idrissi',
+      email: 'salma.idrissi@example.com',
+      phone: '0677777777',
+      address: 'Kenitra',
+    ),
+  ];
+
   Client({
     required this.id,
     required this.name,
@@ -12,4 +71,8 @@ class Client {
     required this.phone,
     required this.address,
   });
+
+  static List<Client> getClients() {
+    return _clients;
+  }
 }
