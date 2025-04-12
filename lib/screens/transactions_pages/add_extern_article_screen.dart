@@ -29,7 +29,9 @@ class AddExternalArticleDialogState extends State<AddExternalArticleDialog> {
 
   List<Product> get _filteredProducts {
     return widget.availableProducts.where((product) {
-      return product.name.toLowerCase().contains(_searchQuery.toLowerCase());
+      final query = _searchQuery.toLowerCase();
+      return product.name.toLowerCase().contains(query) ||
+             product.code.toLowerCase().contains(query);
     }).toList();
   }
 
@@ -65,7 +67,7 @@ class AddExternalArticleDialogState extends State<AddExternalArticleDialog> {
     }
 
     final completer = Completer<String?>();
-
+    
     await showDialog(
       // ignore: use_build_context_synchronously
       context: context,
@@ -97,7 +99,7 @@ class AddExternalArticleDialogState extends State<AddExternalArticleDialog> {
                 top: 16,
                 right: 16,
                 child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
+                  icon: Icon(Icons.close, color: Colors.white),
                   onPressed: () {
                     Navigator.pop(context);
                     completer.complete(null);
@@ -115,6 +117,11 @@ class AddExternalArticleDialogState extends State<AddExternalArticleDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final totalPrice = _selectedProducts.entries.fold(0.0, (sum, entry) {
+      final product = widget.availableProducts.firstWhere((p) => p.code == entry.key);
+      return sum + (product.price * entry.value);
+    });
+
     return Dialog(
       insetPadding: const EdgeInsets.all(16),
       shape: RoundedRectangleBorder(
@@ -148,25 +155,46 @@ class AddExternalArticleDialogState extends State<AddExternalArticleDialog> {
                   onPressed: () async {
                     final scannedCode = await _scanBarcode();
                     if (scannedCode != null) {
-                       // ignore: use_build_context_synchronously
-                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Code scanné: $scannedCode'), duration: const Duration(seconds: 2), backgroundColor: Colors.green),
-                      );
-                      final product = widget.availableProducts.firstWhere(
-                        (p) => p.code == scannedCode,
-                        orElse: () => throw Exception('Produit non trouvé'),
-                      );
-                      setState(() {
-                        _searchQuery = product.name; // Filtrer par le produit scanné
-                        _searchController.text = product.name;
-                        if (!_selectedProducts.containsKey(product.code)) {
-                          _selectedProducts[product.code] = 1;
-                        }
-                      });
                       // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Produit "${product.name}" scanné avec succès.')),
+                        SnackBar(
+                          content: Text('Code scanné: $scannedCode'), 
+                          duration: const Duration(seconds: 2), 
+                          backgroundColor: Colors.green,
+                        ),
                       );
+                      
+                      try {
+                        final product = widget.availableProducts.firstWhere(
+                          (p) => p.code == scannedCode,
+                        );
+                        
+                        setState(() {
+                          _searchQuery = product.name;
+                          _searchController.text = product.name;
+                          _selectedProducts[product.code] = (_selectedProducts[product.code] ?? 0) + 1;
+                        });
+                        
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          final index = _filteredProducts.indexWhere((p) => p.code == product.code);
+                          if (index != -1) {
+                            Scrollable.ensureVisible(
+                              context,
+                              alignment: 0.5,
+                              duration: const Duration(milliseconds: 300),
+                            );
+                          }
+                        });
+                        
+                      } catch (e) {
+                        // ignore: use_build_context_synchronously
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Aucun produit trouvé pour le code $scannedCode'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     }
                   },
                 ),
@@ -188,7 +216,6 @@ class AddExternalArticleDialogState extends State<AddExternalArticleDialog> {
                   final quantity = _selectedProducts[product.code] ?? 0;
 
                   return Card(
-                    // ignore: deprecated_member_use
                     color: quantity > 0 ? const Color.fromARGB(255, 114, 185, 243) : const Color.fromARGB(255, 227, 237, 242),
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     child: ListTile(
@@ -213,55 +240,53 @@ class AddExternalArticleDialogState extends State<AddExternalArticleDialog> {
                 },
               ),
             ),
-            const SizedBox(height: 16),
 
-            // Affichage du nombre d'articles sélectionnés et du prix total déplacé ici
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${_selectedProducts.length} article(s)',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+            // Résumé de la commande (déplacé ici)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${_selectedProducts.length} article(s)',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${_selectedProducts.entries.fold(0.0, (sum, entry) {
-                        final product = widget.availableProducts.firstWhere((p) => p.code == entry.key);
-                        return sum + (product.price * entry.value);
-                      }).toStringAsFixed(2)} DH',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
+                  ),
+                  Text(
+                    '${totalPrice.toStringAsFixed(2)} DH',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
 
             // Boutons Annuler et Ajouter
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 OutlinedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Ferme la boîte de dialogue
-                  },
+                  onPressed: () => Navigator.of(context).pop(),
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 30),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   ),
                   child: const Text('Annuler'),
                 ),
-                Spacer(),
+                const SizedBox(width: 12),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 30),
                     backgroundColor: _selectedProducts.isNotEmpty ? const Color(0xFF004A99) : Colors.grey,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   ),
                   onPressed: _selectedProducts.isNotEmpty ? _submitSelection : null,
                   child: const Text('Ajouter', style: TextStyle(color: Colors.white)),

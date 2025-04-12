@@ -86,6 +86,7 @@ class EditInternalOrderScreenState extends State<EditInternalOrderScreen> {
     if (_formKey.currentState!.validate() && _items.isNotEmpty) {
       final updatedOrder = InternalOrder(
         id: widget.order.id,
+        clientId: widget.order.clientId,
         clientName: _clientNameController.text,
         date: _selectedDate,
         paymentMethod: _paymentMethod,

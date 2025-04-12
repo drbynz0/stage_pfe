@@ -13,7 +13,7 @@ class InternalOrdersScreen extends StatefulWidget {
 }
 
 class InternalOrdersScreenState extends State<InternalOrdersScreen> {
-  List<InternalOrder> _orders = InternalOrder.getInternalOrderList();
+  final List<InternalOrder> _orders = InternalOrder.getInternalOrderList();
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   int _currentPage = 1;
