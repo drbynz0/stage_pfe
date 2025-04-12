@@ -1,5 +1,6 @@
 class InternalOrder {
   final String id;
+  final String clientId;
   final String clientName;
   final DateTime date;
   final PaymentMethod paymentMethod;
@@ -13,7 +14,8 @@ class InternalOrder {
   static final List<InternalOrder> internalOrderList = [
     InternalOrder(
       id: 'CMD-001',
-      clientName: 'Client A',
+      clientId: 'C001',
+      clientName: 'Ahmed Amine',
       date: DateTime.now().subtract(Duration(days: 1)),
       paymentMethod: PaymentMethod.cash,
       totalPrice: 100.00,
@@ -24,6 +26,7 @@ class InternalOrder {
     ),
     InternalOrder(
       id: 'CMD-002',
+      clientId: 'C002',
       clientName: 'Client B',
       date: DateTime.now().subtract(Duration(days: 2)),
       paymentMethod: PaymentMethod.card,
@@ -37,6 +40,7 @@ class InternalOrder {
 
   InternalOrder({
     required this.id,
+    required this.clientId,
     required this.clientName,
     required this.date,
     required this.paymentMethod,
@@ -50,6 +54,22 @@ class InternalOrder {
 
   static List<InternalOrder> getInternalOrderList() {
     return internalOrderList;
+  }
+
+    static InternalOrder empty() {
+    return InternalOrder(
+      id: '',
+      clientId: '',
+      clientName: '',
+      date: DateTime.now(),
+      paymentMethod: PaymentMethod.cash,
+      totalPrice: 0.0,
+      paidPrice: 0.0,
+      remainingPrice: 0.0,
+      status: OrderStatus.pending,
+      items: [],
+      // Add other required fields with default values
+    );
   }
 }
 

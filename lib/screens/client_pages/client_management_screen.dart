@@ -57,12 +57,6 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: const Color(0xFF003366),
-        toolbarHeight: 10,
-        elevation: 0,
-      ),
       body: Stack(
         children: [
           Padding(
@@ -118,13 +112,14 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
                           );
                         },
                         child: Card(
+                          color: const Color.fromARGB(255, 194, 224, 240),
                           elevation: 4,
                           margin: const EdgeInsets.symmetric(vertical: 8),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.all(16.0),
+                            padding: const EdgeInsets.all(10.0),
                             child: Row(
                               children: [
                                 // Badge avec les initiales du client

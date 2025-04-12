@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../discounts_pages/discounts_management.dart'; // Import de la page DiscountsManagementScreen
+import '../discounts_pages/discounts_management.dart';
+import '../factures_pages/factures_management_screen.dart';
 
 class MoreOptionsScreen extends StatelessWidget {
   const MoreOptionsScreen({super.key});
@@ -72,6 +73,14 @@ class MoreOptionsScreen extends StatelessWidget {
         context,
         MaterialPageRoute(
           builder: (context) => const DiscountsManagementScreen(),
+        ),
+      );
+    } else if (label == 'Factures') {
+      // Afficher un SnackBar pour la page Factures
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const FacturesManagementScreen(),
         ),
       );
     } else {

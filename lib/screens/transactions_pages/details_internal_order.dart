@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/internal_order.dart';
+import '/models/client.dart';
+import '../client_pages/client_details_screen.dart';
 
 class DetailsInternalOrderScreen extends StatefulWidget {
   final InternalOrder order;
@@ -12,12 +14,16 @@ class DetailsInternalOrderScreen extends StatefulWidget {
 
 class DetailsInternalOrderScreenState extends State<DetailsInternalOrderScreen> {
   late InternalOrder order;
+  final List<Client> _clients = Client.getClients();
+
 
   @override
   void initState() {
     super.initState();
     order = widget.order;
   }
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -42,17 +48,31 @@ class DetailsInternalOrderScreenState extends State<DetailsInternalOrderScreen> 
           children: [
             // Section Informations Client
             _buildSectionHeader('Informations Client'),
-            _buildInfoCard(
-              children: [
-                _buildInfoRow('Nom', order.clientName),
-                _buildInfoRow('Date', _formatDate(order.date)),
-                _buildInfoRow('Statut', _getStatusText(order.status)),
-                _buildInfoRow('Moyen de paiement', _getPaymentMethodText(order.paymentMethod)),
-                //_buildInfoRow('Prix Total', '${order.items.fold(0.0, (sum, item) => sum + (item.unitPrice * item.quantity)).toStringAsFixed(2)} DH'),
-                //_buildInfoRow('Prix Payé', '${order.paidPrice.toStringAsFixed(2)} DH'),
-                //_buildInfoRow('Prix Restant', '${(order.remainingPrice)} DH'),
-                //_buildInfoRow('Description', order.description != null && order.description!.isNotEmpty ? order.description! : 'Aucune description'),
-              ],
+            InkWell(
+              onTap: () {
+                // Naviguer vers la page des détails du client
+                final client = _clients.firstWhere((c) => c.id == order.clientId, orElse: () => Client.empty());
+                if (client != Client.empty()) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ClientDetailsScreen(client: client),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Client introuvable')),
+                  );
+                }
+              },
+              child: _buildInfoCard(
+                children: [
+                  _buildInfoRow('Nom', order.clientName),
+                  _buildInfoRow('Date', _formatDate(order.date)),
+                  _buildInfoRow('Statut', _getStatusText(order.status)),
+                  _buildInfoRow('Moyen de paiement', _getPaymentMethodText(order.paymentMethod)),
+                ],
+              ),
             ),
             const SizedBox(height: 24),
 
@@ -92,7 +112,7 @@ class DetailsInternalOrderScreenState extends State<DetailsInternalOrderScreen> 
                         backgroundColor: const Color(0xFF004A99),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: const Text('Envoyer Facture', style: TextStyle(color: Colors.white)),
+                      child: const Text('Voir Facture', style: TextStyle(color: Colors.white)),
                     ),
                   ),
                 ],
@@ -217,14 +237,14 @@ class DetailsInternalOrderScreenState extends State<DetailsInternalOrderScreen> 
               color: Colors.green,
             ),
             _buildAllPriceItem(
-              icon: Icons.attach_money,
+              icon: Icons.payments,
               label: 'Prix payé',
               value: '${order.paidPrice.toStringAsFixed(2)} DH',
               color: Colors.blue,
             ),
             _buildAllPriceItem(
-              icon: Icons.attach_money,
-              label: 'Valeur restant',
+              icon: Icons.pending_actions,
+              label: 'Prix restant',
               value: '${order.remainingPrice.toStringAsFixed(2)} DH',
               color: Colors.red,
             ),

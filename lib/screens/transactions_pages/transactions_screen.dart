@@ -23,8 +23,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             });
           },
           tabs: const [
-            Tab(text: 'Ventes (Clients)'),
-            Tab(text: 'Achats (Fournisseurs)'),
+            Tab(text: 'Ventes (Clients)', icon: Icon(Icons.store)),
+            Tab(text: 'Achats (Fournisseurs)', icon: Icon(Icons.local_shipping)),
           ],
         ),
         body: TabBarView(

@@ -7,7 +7,7 @@ class Client {
 
     static final List<Client> _clients = [
     Client(
-      id: '1',
+      id: 'C001',
       name: 'Ahmed Amine',
       email: 'ahmed.amine@example.com',
       phone: '0600000000',
@@ -74,5 +74,17 @@ class Client {
 
   static List<Client> getClients() {
     return _clients;
+  }
+
+    static Client empty() {
+    return Client(
+      id: '0',
+      name: '',
+      email: '',
+      phone: '',
+      address: '',
+
+      // Initialize other required fields with default values
+    );
   }
 }

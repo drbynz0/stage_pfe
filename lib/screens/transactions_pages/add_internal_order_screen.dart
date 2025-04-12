@@ -59,6 +59,7 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
     if (_formKey.currentState!.validate() && _items.isNotEmpty) {
       final newOrder = InternalOrder(
         id: 'CMD-${DateTime.now().millisecondsSinceEpoch}',
+        clientId: 'C${DateTime.now().millisecondsSinceEpoch}',
         clientName: _clientNameController.text,
         date: _selectedDate,
         paymentMethod: _paymentMethod,
