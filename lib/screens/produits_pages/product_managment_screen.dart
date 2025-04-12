@@ -1,9 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'add_product_screen.dart';
 import '/models/product.dart';
 import 'delete_product_screen.dart';
 import 'edit_product_screen.dart';
 import 'details_product_screen.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+
 
 class ProductManagementScreen extends StatefulWidget {
   const ProductManagementScreen({super.key});
@@ -40,8 +46,65 @@ class ProductManagementScreenState extends State<ProductManagementScreen> {
     return filteredProducts.sublist(startIndex, endIndex);
   }
 
+    Future<String?> _scanBarcode() async {
+    final cameraStatus = await Permission.camera.request();
+    if (cameraStatus != PermissionStatus.granted) {
+      return null;
+    }
+
+    final completer = Completer<String?>();
+    
+    await showDialog(
+      // ignore: use_build_context_synchronously
+      context: context,
+      builder: (context) => Center(
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.8,
+          height: MediaQuery.of(context).size.height * 0.6,
+          decoration: BoxDecoration(
+            color: Colors.black,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Stack(
+            children: [
+              MobileScanner(
+                controller: MobileScannerController(
+                  detectionSpeed: DetectionSpeed.normal,
+                  facing: CameraFacing.back,
+                  torchEnabled: false,
+                ),
+                onDetect: (capture) {
+                  final barcodes = capture.barcodes;
+                  if (barcodes.isNotEmpty) {
+                    Navigator.pop(context);
+                    completer.complete(barcodes.first.rawValue);
+                  }
+                },
+              ),
+              Positioned(
+                top: 16,
+                right: 16,
+                child: IconButton(
+                  icon: Icon(Icons.close, color: Colors.white),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    completer.complete(null);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    return completer.future;
+  }
+
   @override
   Widget build(BuildContext context) {
+    setState(() {
+    });
     return Scaffold(
       body: Stack(
         children: [
@@ -254,21 +317,68 @@ class ProductManagementScreenState extends State<ProductManagementScreen> {
               ),
             ],
           ),
-          //Bouton de scanne produit
-          Positioned(
-            right: 23,
-            bottom: 120,
-            child: IconButton(
-              onPressed: () {
-                // Add your barcode scanning logic here
-              },
-              icon: const Icon(
-                Icons.barcode_reader,
-                color: Color.fromARGB(255, 18, 65, 85),
-                size: 30,
-              ),
+          // Bouton de scanne produit
+Positioned(
+  right: 23,
+  bottom: 120,
+  child: IconButton(
+    onPressed: () async {
+      final scannedBarcode = await _scanBarcode(); // Appel de la méthode _scanBarcode
+      if (scannedBarcode != null) {
+        try {
+          // Recherche du produit correspondant
+          final matchingProduct = products.firstWhere(
+            (product) => product.code == scannedBarcode,
+          );
+
+          // Afficher un message de succès
+          // ignore: use_build_context_synchronously
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Produit trouvé : ${matchingProduct.name}'),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
             ),
+          );
+
+          // Naviguer vers les détails du produit scanné
+          Navigator.push(
+            // ignore: use_build_context_synchronously
+            context,
+            MaterialPageRoute(
+              builder: (context) => DetailsProductScreen(product: matchingProduct),
+            ),
+          );
+        } catch (e) {
+          // Afficher un message d'erreur si aucun produit n'est trouvé
+          // ignore: use_build_context_synchronously
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Aucun produit trouvé pour le code $scannedBarcode'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      } else {
+        // Afficher un message si le scan est annulé
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Scan annulé'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 3),
           ),
+        );
+      }
+    },
+    icon: const Icon(
+      Icons.barcode_reader,
+      color: Color.fromARGB(255, 18, 65, 85),
+      size: 30,
+    ),
+  ),
+),
           Positioned(
             right: 15,
             bottom: 60,
@@ -318,19 +428,24 @@ class ProductManagementScreenState extends State<ProductManagementScreen> {
   }
 
   void _showEditDialog(int index) {
-    showDialog(
-      context: context,
-      builder: (context) => EditProductScreen(
-        product: products[index],
-        onProductUpdated: (updatedProduct) {
-          setState(() {
-            products[index] = updatedProduct;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Produit mis à jour avec succès'), duration: const Duration(seconds: 3), backgroundColor: Colors.green,),
-          );
-        },
-      ),
-    );
-  }
+  final productIndex = products.indexOf(paginatedProducts[index]); // Trouve l'index réel dans la liste complète
+  showDialog(
+    context: context,
+    builder: (context) => EditProductScreen(
+      product: products[productIndex], // Utilise l'index réel
+      onProductUpdated: (updatedProduct) {
+        setState(() {
+          products[productIndex] = updatedProduct; // Met à jour le produit dans la liste complète
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Produit "${updatedProduct.name}" mis à jour avec succès'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      },
+    ),
+  );
+}
 }

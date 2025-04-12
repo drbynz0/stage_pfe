@@ -48,7 +48,7 @@ class AddInternArticleDialogState extends State<AddInternArticleDialog> {
       return OrderItem(
         productId: product.code,
         productName: product.name,
-        quantity: entry.value.toDouble(),
+        quantity: entry.value.toInt(),
         unitPrice: product.price,
       );
     }).toList();
@@ -241,7 +241,6 @@ class AddInternArticleDialogState extends State<AddInternArticleDialog> {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.grey[100],
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(

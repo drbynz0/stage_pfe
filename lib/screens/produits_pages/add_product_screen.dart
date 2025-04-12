@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '/models/product.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class AddProductScreen extends StatefulWidget {
   final Function(Product) onProductAdded;
@@ -57,7 +61,7 @@ class AddProductScreenState extends State<AddProductScreen> {
       final newProduct = Product(
         name: _nameController.text,
         price: double.parse(_priceController.text),
-        stock: double.parse(_stockController.text),
+        stock: int.parse(_stockController.text),
         category: _categoryController.text,
         variants: int.parse(_variantsController.text),
         code: _codeController.text,
@@ -70,6 +74,61 @@ class AddProductScreenState extends State<AddProductScreen> {
       Navigator.of(context).pop();
     }
   }
+
+      Future<String?> _scanBarcode() async {
+        final cameraStatus = await Permission.camera.request();
+        if (cameraStatus != PermissionStatus.granted) {
+          return null;
+        }
+
+        final completer = Completer<String?>();
+        
+        await showDialog(
+          // ignore: use_build_context_synchronously
+          context: context,
+          builder: (context) => Center(
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.8,
+              height: MediaQuery.of(context).size.height * 0.6,
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Stack(
+                children: [
+                  MobileScanner(
+                    controller: MobileScannerController(
+                      detectionSpeed: DetectionSpeed.normal,
+                      facing: CameraFacing.back,
+                      torchEnabled: false,
+                    ),
+                    onDetect: (capture) {
+                      final barcodes = capture.barcodes;
+                      if (barcodes.isNotEmpty) {
+                        Navigator.pop(context);
+                        completer.complete(barcodes.first.rawValue);
+                      }
+                    },
+                  ),
+                  Positioned(
+                    top: 16,
+                    right: 16,
+                    child: IconButton(
+                      icon: Icon(Icons.close, color: Colors.white),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        completer.complete(null);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+
+        return completer.future;
+      }
 
   @override
   void dispose() {
@@ -165,8 +224,31 @@ class AddProductScreenState extends State<AddProductScreen> {
                   ),
                   const SizedBox(width: 8),
                   IconButton(
-                    onPressed: () {
-                      // Ajouter la logique de scan de code-barres ici
+                    onPressed: () async {
+                      // Appel de la méthode _scanBarcode
+                      final scannedBarcode = await _scanBarcode();
+                      if (scannedBarcode != null) {
+                        setState(() {
+                          _codeController.text = scannedBarcode; // Remplir automatiquement le champ
+                        });
+                        // ignore: use_build_context_synchronously
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Code scanné : $scannedBarcode'),
+                            backgroundColor: Colors.green,
+                            duration: const Duration(seconds: 3),
+                          ),
+                        );
+                      } else {
+                        // ignore: use_build_context_synchronously
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Scan annulé ou échoué'),
+                            backgroundColor: Colors.red,
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                      }
                     },
                     icon: const Icon(
                       Icons.barcode_reader,

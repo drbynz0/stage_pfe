@@ -4,10 +4,23 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'edit_product_screen.dart';
 
 
-class DetailsProductScreen extends StatelessWidget {
+class DetailsProductScreen extends StatefulWidget {
   final Product product;
 
   const DetailsProductScreen({super.key, required this.product});
+
+  @override
+  _DetailsProductScreenState createState() => _DetailsProductScreenState();
+}
+
+class _DetailsProductScreenState extends State<DetailsProductScreen> {
+  late Product product;
+
+  @override
+  void initState() {
+    super.initState();
+    product = widget.product;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +188,7 @@ class DetailsProductScreen extends StatelessWidget {
             _buildStockPriceItem(
               icon: Icons.inventory,
               label: 'Stock',
-              value: product.stock.toStringAsFixed(2),
+              value: product.stock.toString(),
               color: product.stock > 0 ? Colors.green : Colors.red,
             ),
             _buildStockPriceItem(
@@ -239,9 +252,15 @@ class DetailsProductScreen extends StatelessWidget {
       builder: (context) => EditProductScreen(
         product: product,
         onProductUpdated: (updatedProduct) {
-            updatedProduct;
+          setState(() {
+            product = updatedProduct; // Met à jour le produit dans la liste
+          });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Produit mis à jour avec succès'), duration: const Duration(seconds: 3), backgroundColor: Colors.green,),
+            SnackBar(
+              content: Text('Produit "${updatedProduct.name}" mis à jour avec succès'),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
+            ),
           );
         },
       ),
@@ -255,40 +274,77 @@ class DetailsProductScreen extends StatelessWidget {
     );
   }
 
-  void _manageStock(BuildContext context) {
-    // Implémentez la gestion du stock
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Modifier le stock'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Stock actuel: ${product.stock}'),
-            const SizedBox(height: 16),
-            TextFormField(
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Nouvelle quantité',
-                border: OutlineInputBorder(),
-              ),
+void _manageStock(BuildContext context) {
+  final TextEditingController newStockController = TextEditingController();
+
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Modifier le stock'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Stock actuel: ${product.stock}'),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: newStockController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Nouvelle quantité',
+              border: OutlineInputBorder(),
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () {
-              // Sauvegarder la nouvelle quantité
-              Navigator.pop(context);
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Veuillez entrer une quantité';
+              }
+              if (int.tryParse(value) == null) {
+                return 'Veuillez entrer un nombre valide';
+              }
+              return null;
             },
-            child: const Text('Valider'),
-          ),
+      ),
         ],
       ),
-    );
-  }
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Annuler'),
+        ),
+        TextButton(
+          onPressed: () {
+            final newStock = int.tryParse(newStockController.text);
+            if (newStock != null) {
+              // Mise à jour du stock du produit
+              product.stock = newStock;
+              setState(() {});
+
+              // Afficher un message de confirmation
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Stock mis à jour : $newStock'),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+
+              // Fermer la boîte de dialogue
+              Navigator.pop(context);
+            } else {
+              // Afficher un message d'erreur si la quantité est invalide
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Quantité invalide'),
+                  backgroundColor: Colors.red,
+                  duration: Duration(seconds: 3),
+                ),
+              );
+            }
+          },
+          child: const Text('Valider'),
+        ),
+      ],
+    ),
+  );
+}
+  
 }

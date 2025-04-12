@@ -76,7 +76,7 @@ class InternalOrder {
 class OrderItem {
   final String productId;
   final String productName;
-   double quantity;
+   int quantity;
   final double unitPrice;
 
   OrderItem({

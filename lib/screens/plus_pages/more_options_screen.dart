@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../discounts_pages/discounts_management.dart';
 import '../factures_pages/factures_management_screen.dart';
+import '../fourns_pages/suppliers_management_screen.dart';
 
 class MoreOptionsScreen extends StatelessWidget {
   const MoreOptionsScreen({super.key});
@@ -83,6 +84,25 @@ class MoreOptionsScreen extends StatelessWidget {
           builder: (context) => const FacturesManagementScreen(),
         ),
       );
+    } else if (label == 'Fournisseurs') {
+      // Naviguer vers la page SuppliersManagementScreen
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const SuppliersManagementScreen(),
+        ),
+      );
+    } else if (label == 'Stats') {
+      // Afficher un SnackBar pour la page Stats
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$label cliqué')),
+      );
+    } else if (label == 'Bon à délivrer') {
+      // Afficher un SnackBar pour la page Bon à délivrer
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$label cliqué')),
+      );
+
     } else {
       // Afficher un SnackBar pour les autres options
       ScaffoldMessenger.of(context).showSnackBar(

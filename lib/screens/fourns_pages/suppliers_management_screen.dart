@@ -13,7 +13,7 @@ class SuppliersManagementScreen extends StatefulWidget {
 }
 
 class _SuppliersManagementScreenState extends State<SuppliersManagementScreen> {
-  List<Supplier> _suppliers = Supplier.initialSuppliers;
+  final List<Supplier> _suppliers = Supplier.initialSuppliers;
   int _currentPage = 1;
   final int _itemsPerPage = 5;
 

@@ -76,7 +76,7 @@ class EditProductScreenState extends State<EditProductScreen> {
     final updatedProduct = Product(
       name: _nameController.text,
       price: double.parse(_priceController.text),
-      stock: double.parse(_stockController.text),
+      stock: int.parse(_stockController.text),
       category: _categoryController.text,
       variants: int.parse(_variantsController.text),
       code: widget.product.code,

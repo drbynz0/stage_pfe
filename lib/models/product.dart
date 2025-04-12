@@ -3,7 +3,7 @@ class Product {
   final int variants;
   final String code;
   final String category;
-  final double stock;
+  int stock;
   final double price;
   final String date;
   final List<String>? imagePaths;
@@ -25,7 +25,7 @@ class Product {
       variants: 2,
       code: "30201",
       category: "Watch",
-      stock: 20.4,
+      stock: 20,
       price: 590.00,
       date: "24 Dec 2022",
       imagePaths: ["assets/image/icon_shop.jpg"],

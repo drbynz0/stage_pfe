@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/internal_order.dart';
-import 'add_intern_article_screen.dart';
 import '../../models/product.dart';
+import '../../models/client.dart';
+import 'add_intern_article_screen.dart';
 
 class AddInternalOrderScreen extends StatefulWidget {
   final Function(InternalOrder) onOrderAdded;
@@ -13,8 +14,8 @@ class AddInternalOrderScreen extends StatefulWidget {
 }
 
 class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
-  // Liste de produits disponibles (remplacez par vos données réelles)
   final List<Product> _availableProducts = Product.getProducts();
+  final List<Client> _clients = Client.getClients(); // Récupère la liste des clients
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _clientNameController = TextEditingController();
   OrderStatus _status = OrderStatus.pending;
@@ -44,18 +45,20 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
   double returnTotalPrice() {
     return _items.fold(0.0, (sum, item) => sum + (item.unitPrice * item.quantity));
   }
+
   double returnPaidPrice() {
     return double.tryParse(_paidPriceController.text) ?? 0.0;
   }
+
   double returnRemainingPrice() {
     return returnTotalPrice() - returnPaidPrice();
   }
-
 
   void _submitForm() {
     double totalPrice = returnTotalPrice();
     double paidPrice = returnPaidPrice();
     double remainingPrice = returnRemainingPrice();
+
     if (_formKey.currentState!.validate() && _items.isNotEmpty) {
       final newOrder = InternalOrder(
         id: 'CMD-${DateTime.now().millisecondsSinceEpoch}',
@@ -64,20 +67,102 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
         date: _selectedDate,
         paymentMethod: _paymentMethod,
         totalPrice: totalPrice,
-        paidPrice: paidPrice,//
+        paidPrice: paidPrice,
         remainingPrice: remainingPrice,
         description: _descriptionController.text,
         status: _status,
         items: _items,
       );
+
+      // Vérification de l'état de la commande
+      if (_status == OrderStatus.completed) {
+        for (var item in _items) {
+          final productIndex = _availableProducts.indexWhere((product) => product.code == item.productId);
+          if (productIndex != -1) {
+            setState(() {
+              _availableProducts[productIndex].stock -= item.quantity;
+            });
+          }
+        }
+      }
+
       widget.onOrderAdded(newOrder);
       Navigator.of(context).pop();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Veuillez ajouter au moins un article'), backgroundColor: Colors.red, ),
+        const SnackBar(
+          content: Text('Veuillez ajouter au moins un article'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
+
+Widget _buildClientAutocomplete() {
+  return Autocomplete<Client>(
+    optionsBuilder: (TextEditingValue textEditingValue) {
+      if (textEditingValue.text.isEmpty) {
+        return const Iterable<Client>.empty();
+      }
+      return _clients.where((client) => 
+        client.name.toLowerCase().contains(textEditingValue.text.toLowerCase())
+      );
+    },
+    displayStringForOption: (Client option) => option.name,
+    fieldViewBuilder: (BuildContext context, 
+                      TextEditingController textEditingController, 
+                      FocusNode focusNode, 
+                      VoidCallback onFieldSubmitted) {
+      return TextFormField(
+        controller: textEditingController,
+        focusNode: focusNode,
+        decoration: const InputDecoration(
+          labelText: 'Nom du Client*',
+          border: OutlineInputBorder(),
+          suffixIcon: Icon(Icons.arrow_drop_down),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Veuillez sélectionner ou saisir un client';
+          }
+          return null;
+        },
+      );
+    },
+    onSelected: (Client selection) {
+      setState(() {
+        _clientNameController.text = selection.name;
+      });
+    },
+    optionsViewBuilder: (BuildContext context,
+                        AutocompleteOnSelected<Client> onSelected,
+                        Iterable<Client> options) {
+      return Align(
+        alignment: Alignment.topLeft,
+        child: Material(
+          elevation: 4.0,
+          child: SizedBox(
+            height: 200,
+            child: ListView.builder(
+              padding: EdgeInsets.zero,
+              itemCount: options.length,
+              itemBuilder: (BuildContext context, int index) {
+                final Client option = options.elementAt(index);
+                return ListTile(
+                  title: Text(option.name),
+                  subtitle: Text(option.email),
+                  onTap: () {
+                    onSelected(option);
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -105,19 +190,7 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
               const SizedBox(height: 16),
 
               // Champ pour le nom du client
-              TextFormField(
-                controller: _clientNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nom du Client*',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Ce champ est obligatoire';
-                  }
-                  return null;
-                },
-              ),
+              _buildClientAutocomplete(),
               const SizedBox(height: 16),
 
               // Sélecteur de date
@@ -241,19 +314,18 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
               ),
               const SizedBox(height: 16),
 
-
               // Liste des articles
               const Text('Articles:', style: TextStyle(fontWeight: FontWeight.bold)),
               ..._items.map((item) => ListTile(
                     title: Text(item.productName),
-                    subtitle: Text('${item.quantity*item.unitPrice} DH (${item.quantity})'),
+                    subtitle: Text('${item.quantity * item.unitPrice} DH (${item.quantity})'),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
                         setState(() {
                           _items.remove(item);
                           _totalPriceController.text = returnTotalPrice().toStringAsFixed(2);
-                          _remainingPriceController.text = returnRemainingPrice().toStringAsFixed(2); 
+                          _remainingPriceController.text = returnRemainingPrice().toStringAsFixed(2);
                         });
                       },
                     ),
@@ -263,8 +335,7 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
                   backgroundColor: const Color.fromARGB(255, 17, 109, 207),
                 ),
                 onPressed: () => _showAddArticleDialog(),
-                child: const Text('Ajouter un Article',
-                    style: TextStyle(color: Colors.white)),
+                child: const Text('Ajouter un Article', style: TextStyle(color: Colors.white)),
               ),
               const SizedBox(height: 32),
 
@@ -273,29 +344,27 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      minimumSize: const Size(double.infinity, 50),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        minimumSize: const Size(double.infinity, 50),
+                      ),
+                      child: const Text('Annuler', style: TextStyle(fontSize: 16)),
                     ),
-                    child: const Text('Annuler',
-                      style: TextStyle(fontSize: 16)
-                    ),
-                  ),
                   ),
                   const SizedBox(width: 16),
-                  Expanded(child: ElevatedButton(
-                    onPressed: _submitForm,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: const Color(0xFF004A99),
-                      minimumSize: const Size(double.infinity, 50),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _submitForm,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: const Color(0xFF004A99),
+                        minimumSize: const Size(double.infinity, 50),
+                      ),
+                      child: const Text('Enregistrer', style: TextStyle(color: Colors.white, fontSize: 16)),
                     ),
-                    child: const Text('Enregistrer', 
-                        style: TextStyle(color: Colors.white, fontSize: 16)),
-                  ),
                   ),
                 ],
               ),
@@ -322,7 +391,7 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
           },
         ),
       ),
-      useRootNavigator: false, // Important
+      useRootNavigator: false,
     );
   }
 
