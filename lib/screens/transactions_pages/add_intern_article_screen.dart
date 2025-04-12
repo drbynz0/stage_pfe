@@ -24,11 +24,13 @@ class AddInternArticleDialogState extends State<AddInternArticleDialog> {
   String _searchQuery = '';
   final Map<String, int> _selectedProducts = {}; // productId -> quantity
 
-  List<Product> get _filteredProducts {
-    return widget.availableProducts.where((product) {
-      return product.name.toLowerCase().contains(_searchQuery.toLowerCase());
-    }).toList();
-  }
+List<Product> get _filteredProducts {
+  return widget.availableProducts.where((product) {
+    final query = _searchQuery.toLowerCase();
+    return product.name.toLowerCase().contains(query) ||
+           product.code.toLowerCase().contains(query);
+  }).toList();
+}
 
   void _updateQuantity(String productId, int quantity) {
     setState(() {
@@ -109,6 +111,8 @@ class AddInternArticleDialogState extends State<AddInternArticleDialog> {
     return completer.future;
   }
 
+  
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -144,25 +148,47 @@ class AddInternArticleDialogState extends State<AddInternArticleDialog> {
                   onPressed: () async {
                     final scannedCode = await _scanBarcode();
                     if (scannedCode != null) {
-                       // ignore: use_build_context_synchronously
-                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Code scanné: $scannedCode'), duration: const Duration(seconds: 2), backgroundColor: Colors.green),
-                      );
-                      final product = widget.availableProducts.firstWhere(
-                        (p) => p.code == scannedCode,
-                        orElse: () => throw Exception('Produit non trouvé'),
-                      );
-                      setState(() {
-                        _searchQuery = product.name; // Filtrer par le produit scanné
-                        _searchController.text = product.name;
-                        if (!_selectedProducts.containsKey(product.code)) {
-                          _selectedProducts[product.code] = 1;
-                        }
-                      });
                       // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Produit "${product.name}" scanné avec succès.')),
+                        SnackBar(
+                          content: Text('Code scanné: $scannedCode'), 
+                          duration: const Duration(seconds: 2), 
+                          backgroundColor: Colors.green,
+                        ),
                       );
+                      
+                      try {
+                        final product = widget.availableProducts.firstWhere(
+                          (p) => p.code == scannedCode,
+                        );
+                        
+                        setState(() {
+                          _searchQuery = product.name; // Filtrer par le produit scanné
+                          _searchController.text = product.name;
+                          _selectedProducts[product.code] = (_selectedProducts[product.code] ?? 0) + 1;
+                        });
+                        
+                        // Scroll vers le produit si nécessaire
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          final index = _filteredProducts.indexWhere((p) => p.code == product.code);
+                          if (index != -1) {
+                            Scrollable.ensureVisible(
+                              context,
+                              alignment: 0.5, // Centrer l'élément
+                              duration: const Duration(milliseconds: 300),
+                            );
+                          }
+                        });
+                        
+                      } catch (e) {
+                        // ignore: use_build_context_synchronously
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Aucun produit trouvé pour le code $scannedCode'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     }
                   },
                 ),

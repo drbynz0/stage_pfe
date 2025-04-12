@@ -128,7 +128,7 @@ class AddExternalArticleDialogState extends State<AddExternalArticleDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'Ajouter des articles (Commande Externe)',
+              'Ajouter des articles',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -144,10 +144,14 @@ class AddExternalArticleDialogState extends State<AddExternalArticleDialog> {
                 prefixIcon: const Icon(Icons.search),
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.qr_code_scanner, color: Colors.blue),
+                  icon: const Icon(Icons.barcode_reader, color: Colors.blue),
                   onPressed: () async {
                     final scannedCode = await _scanBarcode();
                     if (scannedCode != null) {
+                       // ignore: use_build_context_synchronously
+                       ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Code scanné: $scannedCode'), duration: const Duration(seconds: 2), backgroundColor: Colors.green),
+                      );
                       final product = widget.availableProducts.firstWhere(
                         (p) => p.code == scannedCode,
                         orElse: () => throw Exception('Produit non trouvé'),
@@ -184,6 +188,7 @@ class AddExternalArticleDialogState extends State<AddExternalArticleDialog> {
                   final quantity = _selectedProducts[product.code] ?? 0;
 
                   return Card(
+                    // ignore: deprecated_member_use
                     color: quantity > 0 ? const Color.fromARGB(255, 114, 185, 243) : const Color.fromARGB(255, 227, 237, 242),
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     child: ListTile(
@@ -210,11 +215,10 @@ class AddExternalArticleDialogState extends State<AddExternalArticleDialog> {
             ),
             const SizedBox(height: 16),
 
-            // Affichage du prix total et ajout du bouton Annuler
+            // Affichage du nombre d'articles sélectionnés et du prix total déplacé ici
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Nombre total d'articles sélectionnés
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -236,28 +240,31 @@ class AddExternalArticleDialogState extends State<AddExternalArticleDialog> {
                     ),
                   ],
                 ),
+              ],
+            ),
+            const SizedBox(height: 16),
 
-                // Boutons Annuler et Ajouter
-                Row(
-                  children: [
-                    OutlinedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(); // Ferme la boîte de dialogue
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                      ),
-                      child: const Text('Annuler'),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _selectedProducts.isNotEmpty ? const Color(0xFF004A99) : Colors.grey,
-                      ),
-                      onPressed: _selectedProducts.isNotEmpty ? _submitSelection : null,
-                      child: const Text('Ajouter', style: TextStyle(color: Colors.white)),
-                    ),
-                  ],
+            // Boutons Annuler et Ajouter
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Ferme la boîte de dialogue
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 30),
+                  ),
+                  child: const Text('Annuler'),
+                ),
+                Spacer(),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 30),
+                    backgroundColor: _selectedProducts.isNotEmpty ? const Color(0xFF004A99) : Colors.grey,
+                  ),
+                  onPressed: _selectedProducts.isNotEmpty ? _submitSelection : null,
+                  child: const Text('Ajouter', style: TextStyle(color: Colors.white)),
                 ),
               ],
             ),

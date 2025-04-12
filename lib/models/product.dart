@@ -13,7 +13,7 @@ class Product {
     Product(
       name: "Handmade Pouch",
       variants: 3,
-      code: "6111243860352",
+      code: "6223007650274",
       category: "Bgg & Pouch",
       stock: 10,
       price: 121.00,

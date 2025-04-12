@@ -3,6 +3,7 @@ import '/models/external_order.dart';
 import 'add_external_order_screen.dart';
 import 'delete_order_dialog.dart';
 import 'edit_external_order_screen.dart';
+import 'details_external_order_screen.dart';
 
 class ExternalOrdersScreen extends StatefulWidget {
   const ExternalOrdersScreen({super.key});
@@ -15,6 +16,8 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
   List<ExternalOrder> _orders = ExternalOrder.getExternalOrderList();
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  int _currentPage = 1;
+  final int _itemsPerPage = 5;
 
   @override
   void initState() {
@@ -26,6 +29,13 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
       return order.supplierName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           order.id.toLowerCase().contains(_searchQuery.toLowerCase());
     }).toList();
+  }
+
+  List<ExternalOrder> get paginatedOrders {
+    int startIndex = (_currentPage - 1) * _itemsPerPage;
+    int endIndex = startIndex + _itemsPerPage;
+    endIndex = endIndex > _filteredOrders.length ? _filteredOrders.length : endIndex;
+    return _filteredOrders.sublist(startIndex, endIndex);
   }
 
   @override
@@ -53,43 +63,56 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
                         onChanged: (value) {
                           setState(() {
                             _searchQuery = value;
+                            _currentPage = 1; // Réinitialiser à la première page
                           });
                         },
                       ),
-                    ),
-                    const SizedBox(width: 8), // Espacement entre les widgets
-
-                    // Bouton de filtrage par date
-                    IconButton(
-                      icon: const Icon(Icons.calendar_today, color: Colors.blue),
-                      onPressed: () async {
-                        final DateTime? selectedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime.now(),
-                        );
-                        if (selectedDate != null) {
-                          setState(() {
-                            _orders = _orders.where((order) {
-                              return order.date.year == selectedDate.year &&
-                                  order.date.month == selectedDate.month &&
-                                  order.date.day == selectedDate.day;
-                            }).toList();
-                          });
-                        }
-                      },
                     ),
                   ],
                 ),
               ),
               Expanded(
                 child: ListView.builder(
-                  itemCount: _filteredOrders.length,
+                  itemCount: paginatedOrders.length,
                   itemBuilder: (context, index) {
-                    final order = _filteredOrders[index];
+                    final order = paginatedOrders[index];
                     return _buildOrderCard(order);
                   },
+                ),
+              ),
+              // Pagination
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: Colors.grey.shade300)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${_filteredOrders.length} commandes',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back),
+                          onPressed: _currentPage > 1
+                              ? () => setState(() => _currentPage--)
+                              : null,
+                        ),
+                        Text(
+                          'Page $_currentPage/${(_filteredOrders.length / _itemsPerPage).ceil()}',
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.arrow_forward),
+                          onPressed: _currentPage < (_filteredOrders.length / _itemsPerPage).ceil()
+                              ? () => setState(() => _currentPage++)
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -110,47 +133,69 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
   }
 
   Widget _buildOrderCard(ExternalOrder order) {
-    return Card(
-      color: const Color.fromARGB(255, 194, 224, 240),
-      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        title: Text(order.supplierName, style: TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(order.id),
-                const Spacer(),
-                Text('${order.date.day}/${order.date.month}/${order.date.year}'),
-              ],
-            ),
-            Text('Articles: ${order.items.length}'),
-            Row(
-              children: [
-                Text(_getPaymentMethodText(order.paymentMethod)),
-                const Spacer(),
-                Text(_getStatusText(order.status),
-                  style: TextStyle(
-                    color: order.status == OrderStatus.completed ? Colors.green : Colors.red,
+    return GestureDetector(
+      onTap: () async {
+        // Navigation vers l'écran des détails
+        final updatedOrder = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DetailsExternalOrderScreen(order: order),
+          ),
+        );
+
+        // Mettre à jour la liste si une commande mise à jour est renvoyée
+        if (updatedOrder != null) {
+          setState(() {
+            final index = _orders.indexWhere((o) => o.id == updatedOrder.id);
+            if (index != -1) {
+              _orders[index] = updatedOrder; // Mettre à jour l'état local
+            }
+          });
+        }
+      },
+      child: Card(
+        color: const Color.fromARGB(255, 194, 224, 240),
+        margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: ListTile(
+          title: Text(order.supplierName, style: TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(order.id),
+                  const Spacer(),
+                  Text('${order.date.day}/${order.date.month}/${order.date.year}'),
+                ],
+              ),
+              Text('Articles: ${order.items.length}'),
+              Row(
+                children: [
+                  Text(_getPaymentMethodText(order.paymentMethod)),
+                  const Spacer(),
+                  Text(
+                    _getStatusText(order.status),
+                    style: TextStyle(
+                      color: order.status == OrderStatus.completed ? Colors.green : Colors.red,
+                    ),
                   ),
-                ),
-              ],
-            )
-          ]
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(Icons.edit, color: Colors.blue),
-              onPressed: () => _showEditDialog(order),
-            ),
-            IconButton(
-              icon: Icon(Icons.delete, color: Colors.red),
-              onPressed: () => _showDeleteDialog(order),
-            ),
-          ],
+                ],
+              )
+            ],
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: Icon(Icons.edit, color: Colors.blue),
+                onPressed: () => _showEditDialog(order),
+              ),
+              IconButton(
+                icon: Icon(Icons.delete, color: Colors.red),
+                onPressed: () => _showDeleteDialog(order),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -158,23 +203,31 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
 
   String _getStatusText(OrderStatus status) {
     switch (status) {
-      case OrderStatus.pending: return 'En attente';
-      case OrderStatus.processing: return 'En traitement';
-      case OrderStatus.completed: return 'Terminée';
-      case OrderStatus.cancelled: return 'Annulée';
+      case OrderStatus.pending:
+        return 'En attente';
+      case OrderStatus.processing:
+        return 'En traitement';
+      case OrderStatus.completed:
+        return 'Terminée';
+      case OrderStatus.cancelled:
+        return 'Annulée';
     }
   }
 
   String _getPaymentMethodText(PaymentMethod method) {
     switch (method) {
-      case PaymentMethod.cash: return 'Espèces';
-      case PaymentMethod.card: return 'Carte';
-      case PaymentMethod.virement: return 'Virement';
-      case PaymentMethod.cheque: return 'Chèque';
+      case PaymentMethod.cash:
+        return 'Espèces';
+      case PaymentMethod.card:
+        return 'Carte';
+      case PaymentMethod.virement:
+        return 'Virement';
+      case PaymentMethod.cheque:
+        return 'Chèque';
     }
   }
 
-    void _showAddExternalOrderDialog() {
+  void _showAddExternalOrderDialog() {
     showDialog(
       context: context,
       builder: (context) => AddExternalOrderScreen(
@@ -183,13 +236,14 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
             _orders.insert(0, newProduct);
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Commande ajouté avec succès'), backgroundColor: Colors.green,),
+            SnackBar(content: Text('Commande ajoutée avec succès'), backgroundColor: Colors.green),
           );
         },
       ),
     );
   }
-    void _showDeleteDialog(ExternalOrder order) {
+
+  void _showDeleteDialog(ExternalOrder order) {
     showDialog(
       context: context,
       builder: (context) => DeleteOrderDialog(
@@ -199,14 +253,14 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
             _orders.removeWhere((o) => o.id == order.id);
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Produit supprimé avec succès'), backgroundColor: Colors.red,),
+            SnackBar(content: Text('Commande supprimée avec succès'), backgroundColor: Colors.red),
           );
         },
       ),
     );
   }
 
-      void _showEditDialog(ExternalOrder order) {
+  void _showEditDialog(ExternalOrder order) {
     showDialog(
       context: context,
       builder: (context) => EditExternalOrderScreen(
@@ -219,7 +273,7 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
             }
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Produit mis à jour avec succès'), backgroundColor: Colors.green,),
+            SnackBar(content: Text('Commande mise à jour avec succès'), backgroundColor: Colors.green),
           );
         },
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../discounts_pages/discounts_management.dart'; // Import de la page DiscountsManagementScreen
+import '../fourns_pages/suppliers_management_screen.dart'; // Import de la page SuppliersManagementScreen
 
 class MoreOptionsScreen extends StatelessWidget {
   const MoreOptionsScreen({super.key});
@@ -72,6 +73,14 @@ class MoreOptionsScreen extends StatelessWidget {
         context,
         MaterialPageRoute(
           builder: (context) => const DiscountsManagementScreen(),
+        ),
+      );
+    } else if (label == 'Fournisseurs') {
+      // Naviguer vers la page SuppliersManagementScreen
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const SuppliersManagementScreen(),
         ),
       );
     } else {
