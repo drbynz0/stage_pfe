@@ -16,17 +16,23 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
   List<ExternalOrder> _orders = ExternalOrder.getExternalOrderList();
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-
-  @override
-  void initState() {
-    super.initState();
-  }
+  int _currentPage = 1;
+  final int _itemsPerPage = 10;
 
   List<ExternalOrder> get _filteredOrders {
     return _orders.where((order) {
       return order.supplierName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           order.id.toLowerCase().contains(_searchQuery.toLowerCase());
     }).toList();
+  }
+
+  List<ExternalOrder> get _paginatedOrders {
+    final startIndex = (_currentPage - 1) * _itemsPerPage;
+    final endIndex = startIndex + _itemsPerPage;
+    return _filteredOrders.sublist(
+      startIndex,
+      endIndex > _filteredOrders.length ? _filteredOrders.length : endIndex,
+    );
   }
 
   @override
@@ -42,23 +48,39 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
                   children: [
                     // Champ de recherche
                     Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: 'Rechercher des commandes...',
-                          prefixIcon: Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              // ignore: deprecated_member_use
+                              color: Colors.grey.withOpacity(0.2),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
                         ),
-                        onChanged: (value) {
-                          setState(() {
-                            _searchQuery = value;
-                          });
-                        },
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: 'Rechercher des commandes...',
+                            hintStyle: const TextStyle(color: Colors.grey),
+                            prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              _searchQuery = value;
+                              _currentPage = 1;
+                            });
+                          },
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 8), // Espacement entre les widgets
+                    const SizedBox(width: 8),
 
                     // Bouton de filtrage par date
                     IconButton(
@@ -77,6 +99,7 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
                                   order.date.month == selectedDate.month &&
                                   order.date.day == selectedDate.day;
                             }).toList();
+                            _currentPage = 1;
                           });
                         }
                       },
@@ -86,11 +109,46 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
               ),
               Expanded(
                 child: ListView.builder(
-                  itemCount: _filteredOrders.length,
+                  itemCount: _paginatedOrders.length,
                   itemBuilder: (context, index) {
-                    final order = _filteredOrders[index];
+                    final order = _paginatedOrders[index];
                     return _buildOrderCard(order);
                   },
+                ),
+              ),
+              // Nouvelle pagination
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: Colors.grey.shade300)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${_filteredOrders.length} commandes',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back),
+                          onPressed: _currentPage > 1
+                              ? () => setState(() => _currentPage--)
+                              : null,
+                        ),
+                        Text(
+                          'Page $_currentPage/${(_filteredOrders.length / _itemsPerPage).ceil()}',
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.arrow_forward),
+                          onPressed: _currentPage < (_filteredOrders.length / _itemsPerPage).ceil()
+                              ? () => setState(() => _currentPage++)
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -113,7 +171,6 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
   Widget _buildOrderCard(ExternalOrder order) {
     return GestureDetector(
       onTap: () async {
-        // Navigation vers l'écran des détails
         final updatedOrder = await Navigator.push(
           context,
           MaterialPageRoute(
@@ -121,21 +178,20 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
           ),
         );
 
-        // Mettre à jour la liste si une commande mise à jour est renvoyée
         if (updatedOrder != null) {
           setState(() {
             final index = _orders.indexWhere((o) => o.id == updatedOrder.id);
             if (index != -1) {
-              _orders[index] = updatedOrder; // Mettre à jour l'état local
+              _orders[index] = updatedOrder;
             }
           });
         }
       },
       child: Card(
         color: const Color.fromARGB(255, 194, 224, 240),
-        margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: ListTile(
-          title: Text(order.supplierName, style: TextStyle(fontWeight: FontWeight.bold)),
+          title: Text(order.supplierName, style: const TextStyle(fontWeight: FontWeight.bold)),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -171,11 +227,11 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: Icon(Icons.edit, color: Colors.blue),
+                icon: const Icon(Icons.edit, color: Colors.blue),
                 onPressed: () => _showEditDialog(order),
               ),
               IconButton(
-                icon: Icon(Icons.delete, color: Colors.red),
+                icon: const Icon(Icons.delete, color: Colors.red),
                 onPressed: () => _showDeleteDialog(order),
               ),
             ],
@@ -203,7 +259,7 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
     }
   }
 
-    void _showAddExternalOrderDialog() {
+  void _showAddExternalOrderDialog() {
     showDialog(
       context: context,
       builder: (context) => AddExternalOrderScreen(
@@ -212,13 +268,17 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
             _orders.insert(0, newProduct);
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Commande ajouté avec succès'), backgroundColor: Colors.green,),
+            const SnackBar(
+              content: Text('Commande ajouté avec succès'), 
+              backgroundColor: Colors.green,
+            ),
           );
         },
       ),
     );
   }
-    void _showDeleteDialog(ExternalOrder order) {
+
+  void _showDeleteDialog(ExternalOrder order) {
     showDialog(
       context: context,
       builder: (context) => DeleteOrderDialog(
@@ -228,14 +288,17 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
             _orders.removeWhere((o) => o.id == order.id);
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Produit supprimé avec succès'), backgroundColor: Colors.red,),
+            const SnackBar(
+              content: Text('Produit supprimé avec succès'), 
+              backgroundColor: Colors.red,
+            ),
           );
         },
       ),
     );
   }
 
-      void _showEditDialog(ExternalOrder order) {
+  void _showEditDialog(ExternalOrder order) {
     showDialog(
       context: context,
       builder: (context) => EditExternalOrderScreen(
@@ -248,7 +311,10 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
             }
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Produit mis à jour avec succès'), backgroundColor: Colors.green,),
+            const SnackBar(
+              content: Text('Produit mis à jour avec succès'), 
+              backgroundColor: Colors.green,
+            ),
           );
         },
       ),

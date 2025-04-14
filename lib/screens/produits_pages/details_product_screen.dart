@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/product.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'edit_product_screen.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+
 
 
 class DetailsProductScreen extends StatefulWidget {
@@ -10,10 +11,10 @@ class DetailsProductScreen extends StatefulWidget {
   const DetailsProductScreen({super.key, required this.product});
 
   @override
-  _DetailsProductScreenState createState() => _DetailsProductScreenState();
+  DetailsProductScreenState createState() => DetailsProductScreenState();
 }
 
-class _DetailsProductScreenState extends State<DetailsProductScreen> {
+class DetailsProductScreenState extends State<DetailsProductScreen> {
   late Product product;
 
   @override
@@ -42,7 +43,7 @@ class _DetailsProductScreenState extends State<DetailsProductScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Galerie d'images
-            _buildImageGallery(),
+            _buildImageCarousel(),
             const SizedBox(height: 24),
 
             // Section Informations de base
@@ -78,9 +79,9 @@ class _DetailsProductScreenState extends State<DetailsProductScreen> {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    icon: const Icon(Icons.barcode_reader),
-                    label: const Text('Scanner'),
-                    onPressed: () => _scanBarcode(context),
+                    icon: const Icon(Icons.view_list, color: Color(0xFF003366)),
+                    label: const Text('Gérer la variante', style: TextStyle(color: Color(0xFF003366))),
+                    onPressed: () => _manageVariants(context),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
@@ -89,11 +90,11 @@ class _DetailsProductScreenState extends State<DetailsProductScreen> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton.icon(
-                    icon: const Icon(Icons.inventory),
-                    label: const Text('Gérer Stock'),
+                    icon: const Icon(Icons.inventory, color: Colors.white),
+                    label: const Text('Gérer Stock', style: TextStyle(color: Colors.white)),
                     onPressed: () => _manageStock(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: const Color(0xFF003366),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                   ),
@@ -106,31 +107,53 @@ class _DetailsProductScreenState extends State<DetailsProductScreen> {
     );
   }
 
-  Widget _buildImageGallery() {
-    return SizedBox(
-      height: 250,
-      child: PageView.builder(
-        itemCount: product.imagePaths?.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: product.imagePaths![index].startsWith('http')
-                  ? CachedNetworkImage(
-                      imageUrl: product.imagePaths![index],
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                      errorWidget: (context, url, error) => const Icon(Icons.error),
-                    )
-                  : Image.asset(
-                      product.imagePaths![index],
-                      fit: BoxFit.cover,
-                    ),
-            ),
-          );
-        },
-      ),
+    Widget _buildImageCarousel() {
+    return Column(
+      children: [
+        CarouselSlider(
+          options: CarouselOptions(
+            height: 300,
+            autoPlay: true,
+            enlargeCenterPage: true,
+            viewportFraction: 1,
+          ),
+          items: product.imagePaths!.map((imageUrl) {
+            return Builder(
+              builder: (BuildContext context) {
+                return Container(
+                  width: MediaQuery.of(context).size.width,
+                  margin: const EdgeInsets.symmetric(horizontal: 1),
+                  child: Image.asset(
+                    product.imagePaths?[0] ?? 'assets/image/empty_promotion.png',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(Icons.image_not_supported, color: Colors.grey);
+                    },
+                  )
+                );
+              },
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: product.imagePaths!.asMap().entries.map((entry) {
+            return Container(
+              width: 8,
+              height: 8,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                // ignore: deprecated_member_use
+                color: Colors.grey.withOpacity(
+                  entry.key == 0 ? 0.9 : 0.4,
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 
@@ -239,8 +262,8 @@ class _DetailsProductScreenState extends State<DetailsProductScreen> {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Text(
-          product.description!.join('\n\n'),
-          style: const TextStyle(fontSize: 16),
+          product.description ?? 'Description indisponible',
+          style: const TextStyle(fontSize: 16, height: 1.5),
         ),
       ),
     );
@@ -267,11 +290,77 @@ class _DetailsProductScreenState extends State<DetailsProductScreen> {
     );
   }
 
-  void _scanBarcode(BuildContext context) {
-    // Implémentez le scan de code-barres
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fonctionnalité de scan à implémenter')),
-    );
+  void _manageVariants(BuildContext context) {
+  final TextEditingController newVariantController = TextEditingController();
+
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Modifier le stock'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Variantes actuel: ${product.variants}'),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: newVariantController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Nouvelle variante',
+              border: OutlineInputBorder(),
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Veuillez entrer une variante';
+              }
+              if (int.tryParse(value) == null) {
+                return 'Veuillez entrer un nombre valide';
+              }
+              return null;
+            },
+      ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Annuler'),
+        ),
+        TextButton(
+          onPressed: () {
+            final newVariant = int.tryParse(newVariantController.text);
+            if (newVariant != null) {
+              product.variants = newVariant;
+              setState(() {});
+
+              // Afficher un message de confirmation
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Variante mis à jour : $newVariant'),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+
+              // Fermer la boîte de dialogue
+              Navigator.pop(context);
+            } else {
+              // Afficher un message d'erreur si la quantité est invalide
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Quantité invalide'),
+                  backgroundColor: Colors.red,
+                  duration: Duration(seconds: 3),
+                ),
+              );
+            }
+          },
+          child: const Text('Valider'),
+        ),
+      ],
+    ),
+  );
+  
   }
 
 void _manageStock(BuildContext context) {

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:stage_pfe/models/supplier.dart';
 import '../../models/external_order.dart';
+import '../fourns_pages/supplier_details_screen.dart';
 
 class DetailsExternalOrderScreen extends StatefulWidget {
   final ExternalOrder order;
@@ -12,6 +14,7 @@ class DetailsExternalOrderScreen extends StatefulWidget {
 
 class DetailsExternalOrderScreenState extends State<DetailsExternalOrderScreen> {
   late ExternalOrder order;
+  late final List<Supplier> _supplier = Supplier.listSuppliers;
 
   @override
   void initState() {
@@ -42,13 +45,32 @@ class DetailsExternalOrderScreenState extends State<DetailsExternalOrderScreen> 
           children: [
             // Section Informations Fournisseur
             _buildSectionHeader('Informations Fournisseur'),
-            _buildInfoCard(
-              children: [
-                _buildInfoRow('Fournisseur', order.supplierName),
-                _buildInfoRow('Date', _formatDate(order.date)),
-                _buildInfoRow('Statut', _getStatusText(order.status)),
-                _buildInfoRow('Moyen de paiement', _getPaymentMethodText(order.paymentMethod)),
-              ],
+            InkWell(
+              onTap: () {
+                // Naviguer vers la page des détails du client
+                final supplier = _supplier.firstWhere((c) => c.id == order.supplierId, orElse: () => Supplier.empty());
+                if (supplier != Supplier.empty()) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SupplierDetailsScreen(supplier: supplier),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Client introuvable')),
+                  );
+                }
+              },
+
+              child: _buildInfoCard(
+                children: [
+                  _buildInfoRow('Fournisseur', order.supplierName),
+                  _buildInfoRow('Date', _formatDate(order.date)),
+                  _buildInfoRow('Statut', _getStatusText(order.status)),
+                  _buildInfoRow('Moyen de paiement', _getPaymentMethodText(order.paymentMethod)),
+                ],
+              ),
             ),
             const SizedBox(height: 24),
 

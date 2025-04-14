@@ -22,6 +22,7 @@ class _EditDiscountScreenState extends State<EditDiscountScreen> {
   late TextEditingController _productNameController;
   late TextEditingController _normalPriceController;
   late TextEditingController _promotionPriceController;
+  late TextEditingController _descriptionController;
 
   @override
   void initState() {
@@ -49,9 +50,13 @@ class _EditDiscountScreenState extends State<EditDiscountScreen> {
         id: widget.discount.id,
         title: _titleController.text,
         validity: _validityController.text,
+        productId: widget.discount.productId,
+        productCategory: widget.discount.productCategory,
+        images: widget.discount.images,
         productName: _productNameController.text,
         normalPrice: double.tryParse(_normalPriceController.text) ?? 0.0,
         promotionPrice: double.tryParse(_promotionPriceController.text) ?? 0.0,
+        description: _descriptionController.text,
       );
 
       widget.onEditDiscount(updatedDiscount);
@@ -124,7 +129,19 @@ class _EditDiscountScreenState extends State<EditDiscountScreen> {
                   return null;
                 },
               ),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(labelText: 'Description'),
+                maxLines: 5,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Veuillez entrer une description';
+                    }
+                    return null;
+                    },
+              ),
               const SizedBox(height: 20),
+              
               ElevatedButton(
                 onPressed: _saveDiscount,
                 style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF003366)),

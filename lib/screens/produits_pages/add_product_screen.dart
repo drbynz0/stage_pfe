@@ -67,7 +67,7 @@ class AddProductScreenState extends State<AddProductScreen> {
         code: _codeController.text,
         date: "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}",
         imagePaths: imagePaths,
-        description: _descriptionController.text.isNotEmpty ? [_descriptionController.text] : null,
+        description: _descriptionController.text,
       );
 
       widget.onProductAdded(newProduct);

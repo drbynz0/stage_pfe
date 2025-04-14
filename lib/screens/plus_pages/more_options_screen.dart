@@ -35,6 +35,7 @@ class MoreOptionsScreen extends StatelessWidget {
 
   Widget _buildListTile(Map<String, dynamic> option, BuildContext context) {
     return Card(
+      color: const Color.fromARGB(255, 194, 224, 240),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16), // Coins arrondis pour un effet moderne
       ),

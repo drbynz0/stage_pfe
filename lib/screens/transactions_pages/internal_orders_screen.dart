@@ -13,7 +13,7 @@ class InternalOrdersScreen extends StatefulWidget {
 }
 
 class InternalOrdersScreenState extends State<InternalOrdersScreen> {
-  final List<InternalOrder> _orders = InternalOrder.getInternalOrderList();
+  List<InternalOrder> _orders = InternalOrder.getInternalOrderList();
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   int _currentPage = 1;
@@ -51,22 +51,60 @@ class InternalOrdersScreenState extends State<InternalOrdersScreen> {
                   children: [
                     // Champ de recherche
                     Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: 'Rechercher des commandes...',
-                          prefixIcon: Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              // ignore: deprecated_member_use
+                              color: Colors.grey.withOpacity(0.2),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
                         ),
-                        onChanged: (value) {
-                          setState(() {
-                            _searchQuery = value;
-                            _currentPage = 1; // Réinitialiser à la première page
-                          });
-                        },
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: 'Rechercher des commandes...',
+                            hintStyle: const TextStyle(color: Colors.grey),
+                            prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              _searchQuery = value;
+                              _currentPage = 1; // Réinitialiser à la première page
+                            });
+                          },
+                        ),
                       ),
+                    ),
+                    const SizedBox(width: 8),
+
+                   // Bouton de filtrage par date
+                    IconButton(
+                      icon: const Icon(Icons.calendar_today, color: Colors.blue),
+                      onPressed: () async {
+                        final DateTime? selectedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime.now(),
+                        );
+                        if (selectedDate != null) {
+                          setState(() {
+                            _orders = _orders.where((order) {
+                              return order.date.year == selectedDate.year &&
+                                  order.date.month == selectedDate.month &&
+                                  order.date.day == selectedDate.day;
+                            }).toList();
+                          });
+                        }
+                      },
                     ),
                   ],
                 ),

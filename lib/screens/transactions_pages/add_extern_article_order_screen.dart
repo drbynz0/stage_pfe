@@ -46,7 +46,7 @@ class AddInternArticleDialogState extends State<AddInternArticleDialog> {
       return OrderItem(
         productId: product.code,
         productName: product.name,
-        quantity: entry.value.toDouble(),
+        quantity: entry.value.toInt(),
         unitPrice: product.price,
       );
     }).toList();
@@ -310,7 +310,7 @@ class AddExternalArticleDialogState extends State<AddExternalArticleDialog> {
       return OrderItem(
         productId: product.code,
         productName: product.name,
-        quantity: entry.value.toDouble(),
+        quantity: entry.value.toInt(),
         unitPrice: product.price,
       );
     }).toList();

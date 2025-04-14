@@ -20,7 +20,7 @@ class Supplier {
   });
 
   // Méthode statique pour obtenir la liste initiale
-  static List<Supplier> get initialSuppliers {
+  static List<Supplier> get listSuppliers {
     return [
       Supplier(
         id: '1',
@@ -100,6 +100,21 @@ class Supplier {
       products: products ?? this.products,
       company: company ?? this.company,
       paymentTerms: paymentTerms ?? this.paymentTerms,
+    );
+  }
+
+      static Supplier empty() {
+    return Supplier(
+      id: '0',
+      name: '',
+      email: '',
+      phone: '',
+      address: '',
+      products: [],
+      company: '',
+      paymentTerms: '30 jours',
+
+      // Initialize other required fields with default values
     );
   }
 }

@@ -107,7 +107,7 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ClientDetailsScreen(client: client),
+                              builder: (context) => ClientDetailsScreen(client: client, internalOrders: [],),
                             ),
                           );
                         },
