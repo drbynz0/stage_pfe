@@ -4,7 +4,7 @@ import 'transactions_pages/transactions_screen.dart';
 import 'client_pages/client_management_screen.dart';
 import 'plus_pages/more_options_screen.dart';
 import 'settings_pages/settings_screen.dart';
-
+//soumya
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
