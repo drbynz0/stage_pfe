@@ -3,7 +3,8 @@ import 'produits_pages/product_managment_screen.dart';
 import 'transactions_pages/transactions_screen.dart';
 import 'client_pages/client_management_screen.dart';
 import 'plus_pages/more_options_screen.dart';
-
+import 'settings_pages/settings_screen.dart';
+//soumya
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -221,26 +222,46 @@ class HomeScreenState extends State<HomeScreen> {
               decoration: const BoxDecoration(
                 color: Color.fromARGB(255, 145, 193, 214),
               ),
-              child: Image.asset(
-                'assets/image/welcome.png',
-                width: 100,
-                height: 100,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/image/welcome.png',
+                    width: 100,
+                    height: 100,
+                  ),
+      
+                
+                ],
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.person),
+              leading: const Icon(Icons.person, color: Color(0xFF003366)),
               title: const Text('Profil'),
-              onTap: () => Navigator.pushNamed(context, '/profile'),
+              onTap: () {
+                Navigator.pop(context);
+                // Navigation vers le profil
+              },
             ),
             ListTile(
-              leading: const Icon(Icons.settings),
+              leading: const Icon(Icons.settings, color: Color(0xFF003366)),
               title: const Text('Paramètres'),
-              onTap: () => Navigator.pushNamed(context, '/settings'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                );
+              },
             ),
+            const Divider(),
             ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Déconnexion'),
-              onTap: () => Navigator.pushNamed(context, '/login'),
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Déconnexion', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushReplacementNamed(context, '/login');
+              },
             ),
           ],
         ),
