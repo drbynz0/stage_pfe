@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'forgot_pass_screen.dart'; // Importez la nouvelle page
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -8,19 +9,31 @@ class LoginScreen extends StatefulWidget {
 }
 
 class LoginScreenState extends State<LoginScreen> {
-  // ignore: unused_field
-  double _decorationHeight = 250; // Hauteur initiale de la décoration
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   void _reduceDecoration() {
-    setState(() {
-      _decorationHeight = 150; // Réduire la hauteur de la décoration
-    });
   }
 
   void _resetDecoration() {
-    setState(() {
-      _decorationHeight = 250; // Restaurer la hauteur initiale
+  }
+
+  void _login() {
+    setState(() => _isLoading = true);
+    // Simulation de connexion
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() => _isLoading = false);
+      // ignore: use_build_context_synchronously
+      Navigator.pushNamed(context, '/home');
     });
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -29,30 +42,28 @@ class LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Barre rectangulaire en haut de la page
           Positioned(
             top: 0,
             left: 0,
             right: 0,
             child: Container(
-              height: 100, // Hauteur fixe de la barre
-              color: const Color(0xFF002E6D), // Bleu foncé
+              height: 100,
+              color: const Color(0xFF002E6D),
             ),
           ),
-          // Contenu principal
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 120), // Espace sous la barre
+                  const SizedBox(height: 120),
                   const Text(
                     'Bienvenue !',
                     style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF002E6D), // Bleu foncé
+                      color: Color(0xFF002E6D),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -66,23 +77,14 @@ class LoginScreenState extends State<LoginScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 50),
-                  // Champ Email
                   Focus(
-                    onFocusChange: (hasFocus) {
-                      if (hasFocus) {
-                        _reduceDecoration();
-                      } else {
-                        _resetDecoration();
-                      }
-                    },
+                    onFocusChange: (hasFocus) => hasFocus ? _reduceDecoration() : _resetDecoration(),
                     child: TextField(
+                      controller: _emailController,
                       decoration: InputDecoration(
                         labelText: 'Email',
-                        labelStyle:
-                            const TextStyle(color: Color(0xFF002E6D)),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        labelStyle: const TextStyle(color: Color(0xFF002E6D)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         focusedBorder: const OutlineInputBorder(
                           borderSide: BorderSide(color: Color(0xFF002E6D)),
                         ),
@@ -91,25 +93,16 @@ class LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Champ Mot de passe
                   Focus(
-                    onFocusChange: (hasFocus) {
-                      if (hasFocus) {
-                        _reduceDecoration();
-                      } else {
-                        _resetDecoration();
-                      }
-                    },
+                    onFocusChange: (hasFocus) => hasFocus ? _reduceDecoration() : _resetDecoration(),
                     child: TextField(
+                      controller: _passwordController,
                       decoration: InputDecoration(
                         labelText: 'Mot de passe',
-                        labelStyle:
-                            const TextStyle(color: Color(0xFF002E6D)), // Bleu foncé
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        labelStyle: const TextStyle(color: Color(0xFF002E6D)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         focusedBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFF002E6D)), // Bleu foncé
+                          borderSide: BorderSide(color: Color(0xFF002E6D)),
                         ),
                       ),
                       obscureText: true,
@@ -120,6 +113,12 @@ class LoginScreenState extends State<LoginScreen> {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ForgotPasswordScreen(),
+                          ),
+                        );
                       },
                       child: const Text(
                         'Mot de passe oublié ?',
@@ -131,11 +130,8 @@ class LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Bouton Se connecter
                   GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/home');
-                    },
+                    onTap: _isLoading ? null : _login,
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       curve: Curves.easeInOut,
@@ -153,29 +149,35 @@ class LoginScreenState extends State<LoginScreen> {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       alignment: Alignment.center,
-                      child: const Text(
-                        'Se connecter',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              'Se connecter',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 16),
                   OutlinedButton(
-                    onPressed: () {
-                      // Ajouter la logique de connexion avec Google ici
-                    },
+                    onPressed: () {},
                     style: OutlinedButton.styleFrom(
                       backgroundColor: Colors.white,
-                      side: const BorderSide(color: Color(0xFFDDDDDD)), // Bordure grise subtile
+                      side: const BorderSide(color: Color(0xFFDDDDDD)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
-                      elevation: 0,
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
