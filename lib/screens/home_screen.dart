@@ -220,7 +220,7 @@ class HomeScreenState extends State<HomeScreen> {
           children: [
             DrawerHeader(
               decoration: const BoxDecoration(
-                color: Color(0xFF003366),
+                color: Color.fromARGB(255, 145, 193, 214),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,

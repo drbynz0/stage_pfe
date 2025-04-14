@@ -1,13 +1,13 @@
 class Product {
   final String name;
-  final int variants;
+  int variants;
   final String code;
   final String category;
   int stock;
   final double price;
   final String date;
   final List<String>? imagePaths;
-  final List<String>? description;
+  final String? description;
 
   static final List<Product> productList = [
     Product(
@@ -74,7 +74,7 @@ class Product {
       name: "Coffee Maker",
       variants: 2,
       code: "806321",
-      category: "Home Appliances",
+      category: "Home",
       stock: 25,
       price: 150.00,
       date: "1 Feb 2023",
@@ -128,4 +128,18 @@ class Product {
   static List<Product> getProducts() {
     return productList;
   }
+  
+  static Product getProductById(String id) {
+    return productList.firstWhere((element) => element.code == id, orElse: () => Product
+    (name: "",
+    variants: 0,
+    code: "",
+    category: "",
+    stock: 0,
+    price: 0.00,
+    date: "",
+    imagePaths: [],
+    description: "",
+    ));
+    }
 }

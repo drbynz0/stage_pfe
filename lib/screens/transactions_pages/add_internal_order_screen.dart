@@ -98,71 +98,71 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
     }
   }
 
-Widget _buildClientAutocomplete() {
-  return Autocomplete<Client>(
-    optionsBuilder: (TextEditingValue textEditingValue) {
-      if (textEditingValue.text.isEmpty) {
-        return const Iterable<Client>.empty();
-      }
-      return _clients.where((client) => 
-        client.name.toLowerCase().contains(textEditingValue.text.toLowerCase())
-      );
-    },
-    displayStringForOption: (Client option) => option.name,
-    fieldViewBuilder: (BuildContext context, 
-                      TextEditingController textEditingController, 
-                      FocusNode focusNode, 
-                      VoidCallback onFieldSubmitted) {
-      return TextFormField(
-        controller: textEditingController,
-        focusNode: focusNode,
-        decoration: const InputDecoration(
-          labelText: 'Nom du Client*',
-          border: OutlineInputBorder(),
-          suffixIcon: Icon(Icons.arrow_drop_down),
-        ),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Veuillez sélectionner ou saisir un client';
-          }
-          return null;
-        },
-      );
-    },
-    onSelected: (Client selection) {
-      setState(() {
-        _clientNameController.text = selection.name;
-      });
-    },
-    optionsViewBuilder: (BuildContext context,
-                        AutocompleteOnSelected<Client> onSelected,
-                        Iterable<Client> options) {
-      return Align(
-        alignment: Alignment.topLeft,
-        child: Material(
-          elevation: 4.0,
-          child: SizedBox(
-            height: 200,
-            child: ListView.builder(
-              padding: EdgeInsets.zero,
-              itemCount: options.length,
-              itemBuilder: (BuildContext context, int index) {
-                final Client option = options.elementAt(index);
-                return ListTile(
-                  title: Text(option.name),
-                  subtitle: Text(option.email),
-                  onTap: () {
-                    onSelected(option);
-                  },
-                );
-              },
+  Widget _buildClientAutocomplete() {
+    return Autocomplete<Client>(
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text.isEmpty) {
+          return const Iterable<Client>.empty();
+        }
+        return _clients.where((client) => 
+          client.name.toLowerCase().contains(textEditingValue.text.toLowerCase())
+        );
+      },
+      displayStringForOption: (Client option) => option.name,
+      fieldViewBuilder: (BuildContext context, 
+                        TextEditingController textEditingController, 
+                        FocusNode focusNode, 
+                        VoidCallback onFieldSubmitted) {
+        return TextFormField(
+          controller: textEditingController,
+          focusNode: focusNode,
+          decoration: const InputDecoration(
+            labelText: 'Nom du Client*',
+            border: OutlineInputBorder(),
+            suffixIcon: Icon(Icons.arrow_drop_down),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Veuillez sélectionner ou saisir un client';
+            }
+            return null;
+          },
+        );
+      },
+      onSelected: (Client selection) {
+        setState(() {
+          _clientNameController.text = selection.name;
+        });
+      },
+      optionsViewBuilder: (BuildContext context,
+      AutocompleteOnSelected<Client> onSelected,
+      Iterable<Client> options) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 4.0,
+            child: SizedBox(
+              height: 200,
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                itemCount: options.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final Client option = options.elementAt(index);
+                  return ListTile(
+                    title: Text(option.name),
+                    subtitle: Text(option.email),
+                    onTap: () {
+                      onSelected(option);
+                    },
+                  );
+                },
+              ),
             ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

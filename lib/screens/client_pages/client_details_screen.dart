@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
 import '/models/client.dart';
+import '/models/internal_order.dart';
+import '../transactions_pages/details_internal_order.dart';
 
 class ClientDetailsScreen extends StatelessWidget {
   final Client client;
+  final List<InternalOrder> internalOrders; // Liste des commandes internes
 
-  const ClientDetailsScreen({super.key, required this.client});
+  ClientDetailsScreen({
+    super.key,
+    required this.client, required List internalOrders,
+  }) : internalOrders = InternalOrder.getInternalOrderList();
 
   @override
   Widget build(BuildContext context) {
-    // Exemple de données fictives pour les commandes et factures
-    final List<Map<String, String>> commandes = [
-      {'id': 'CMD001', 'date': '2025-04-01', 'montant': '150.00'},
-      {'id': 'CMD002', 'date': '2025-04-05', 'montant': '200.00'},
-    ];
+    // Filtrer les commandes du client
+    final clientOrders = internalOrders.where((order) => order.clientId == client.id).toList();
 
-    final List<Map<String, String>> factures = [
-      {'id': 'FAC001', 'date': '2025-04-02', 'montant': '150.00'},
-      {'id': 'FAC002', 'date': '2025-04-06', 'montant': '200.00'},
-    ];
+    // Calculer les statistiques des commandes
+    final totalOrders = clientOrders.length;
+    final pendingOrders = clientOrders.where((order) => order.status == OrderStatus.pending).length;
+    final completedOrders = clientOrders.where((order) => order.status == OrderStatus.completed).length;
+    final processingOrders = clientOrders.where((order) => order.status == OrderStatus.processing).length;
 
     return Scaffold(
       appBar: AppBar(
@@ -44,6 +48,7 @@ class ClientDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Card(
+              color: const Color.fromARGB(255, 194, 224, 240),
               elevation: 4,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
@@ -66,7 +71,38 @@ class ClientDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Commandes
+            // Carte récapitulative des commandes
+            const Text(
+              'Statistiques des Commandes',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                color: Color(0xFF003366),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Card(
+              color: const Color.fromARGB(255, 207, 230, 244),
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildStatCard('Total', totalOrders.toString(), Colors.blue),
+                    _buildStatCard('En attente', pendingOrders.toString(), Colors.orange),
+                    _buildStatCard('Traitement', processingOrders.toString(), Colors.yellow),
+                    _buildStatCard('Complétées', completedOrders.toString(), Colors.green),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Liste des commandes
             const Text(
               'Commandes',
               style: TextStyle(
@@ -76,21 +112,7 @@ class ClientDetailsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            _buildSectionList(commandes, 'Commande'),
-
-            const SizedBox(height: 24),
-
-            // Factures
-            const Text(
-              'Factures',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: Color(0xFF003366),
-              ),
-            ),
-            const SizedBox(height: 8),
-            _buildSectionList(factures, 'Facture'),
+            _buildOrdersList(clientOrders),
           ],
         ),
       ),
@@ -123,14 +145,38 @@ class ClientDetailsScreen extends StatelessWidget {
     );
   }
 
-  // Widget pour afficher une liste de commandes ou factures
-  Widget _buildSectionList(List<Map<String, String>> items, String type) {
+  // Widget pour afficher une carte statistique
+  Widget _buildStatCard(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            color: Colors.black54,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Widget pour afficher la liste des commandes
+  Widget _buildOrdersList(List<InternalOrder> orders) {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: items.length,
+      itemCount: orders.length,
       itemBuilder: (context, index) {
-        final item = items[index];
+        final order = orders[index];
         return Card(
           elevation: 4,
           margin: const EdgeInsets.symmetric(vertical: 8),
@@ -141,19 +187,50 @@ class ClientDetailsScreen extends StatelessWidget {
             leading: CircleAvatar(
               backgroundColor: const Color(0xFF004A99),
               child: Text(
-                type[0], // Première lettre du type (C pour Commande, F pour Facture)
+                'C', // Première lettre de "Commande"
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
-            title: Text('$type ID : ${item['id']}'),
-            subtitle: Text('Date : ${item['date']}'),
-            trailing: Text(
-              '${item['montant']} MAD',
-              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+            title: Text('Commande ID : ${order.id}'),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Date : ${order.date}'),
+                Text('Articles : ${order.items.length}'),
+                Text(_getStatusText(order.status),
+                    style: TextStyle(
+                      color: order.status == OrderStatus.completed ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.bold,
+                    )),
+              ],
             ),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () {
+              // Action lors du clic sur une commande (par exemple, afficher les détails)
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DetailsInternalOrderScreen(order: order),
+                ),
+              );
+            },
           ),
         );
       },
     );
+  }
+
+  // Méthode pour obtenir le texte du statut
+  String _getStatusText(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.pending:
+        return 'En attente';
+      case OrderStatus.processing:
+        return 'En traitement';
+      case OrderStatus.completed:
+        return 'Terminée';
+      case OrderStatus.cancelled:
+        return 'Annulée';
+      }
   }
 }

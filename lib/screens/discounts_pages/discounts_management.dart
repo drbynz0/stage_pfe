@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '/models/discounts.dart';
+import '/models/product.dart';
 import 'add_discounts.dart';
 import 'edit_discounts.dart';
 import 'delete_discounts.dart';
+import 'details_discount_screen.dart';
+
 
 class DiscountsManagementScreen extends StatefulWidget {
   const DiscountsManagementScreen({super.key});
@@ -12,28 +15,13 @@ class DiscountsManagementScreen extends StatefulWidget {
 }
 
 class _DiscountsManagementScreenState extends State<DiscountsManagementScreen> {
-  final List<Discount> _discounts = [
-    Discount(
-      id: '1',
-      title: 'Remise de 10%',
-      validity: 'Valide jusqu\'au 30 avril 2025',
-      productName: 'Produit A',
-      normalPrice: 200.0,
-      promotionPrice: 180.0,
-    ),
-    Discount(
-      id: '2',
-      title: 'Remise de 20%',
-      validity: 'Valide jusqu\'au 15 mai 2025',
-      productName: 'Produit B',
-      normalPrice: 300.0,
-      promotionPrice: 240.0,
-    ),
-  ];
+  final List<Discount> _discounts = Discount.getDiscountList();
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   void _addDiscount(Discount discount) {
     setState(() {
-      _discounts.add(discount);
+      _discounts.insert(0, discount);
     });
   }
 
@@ -52,92 +40,241 @@ class _DiscountsManagementScreenState extends State<DiscountsManagementScreen> {
     });
   }
 
+  List<Discount> get _filteredDiscounts {
+    if (_searchQuery.isEmpty) return _discounts;
+    return _discounts.where((discount) {
+      return discount.productName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          discount.productCategory.toLowerCase().contains(_searchQuery.toLowerCase());
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gestion des Discounts'),
+        title: const Text('Promotions en cours', style: TextStyle(fontSize: 20, color: Colors.white)),
         backgroundColor: const Color(0xFF003366),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: _discounts.isEmpty
-            ? const Center(
-                child: Text(
-                  'Aucun discount disponible.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+      body: Column(
+        children: [
+          // Barre de recherche
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Rechercher par nom ou catégorie...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
                 ),
-              )
-            : ListView.builder(
-                itemCount: _discounts.length,
-                itemBuilder: (context, index) {
-                  final discount = _discounts[index];
-                  return Card(
-                    elevation: 4,
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: ListTile(
-                      title: Text(discount.title),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Produit : ${discount.productName}'),
-                          Text('Prix normal : ${discount.normalPrice} MAD'),
-                          Text('Prix promo : ${discount.promotionPrice} MAD'),
-                          Text(discount.validity),
-                        ],
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => EditDiscountScreen(
-                                    discount: discount,
-                                    onEditDiscount: _editDiscount,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => DeleteDiscountScreen(
-                                    discount: discount,
-                                    onDeleteDiscount: _deleteDiscount,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
               ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+            ),
+          ),
+          Expanded(
+            child: _buildDiscountsList(),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddDiscountScreen(onAddDiscount: _addDiscount),
-            ),
-          );
-        },
+        onPressed: () => _showAddDiscountDialog(),
         backgroundColor: const Color(0xFF003366),
         child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildDiscountsList() {
+    if (_filteredDiscounts.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/image/empty_promotion.png', height: 150),
+            const SizedBox(height: 20),
+            const Text(
+              'Aucune promotion active',
+              style: TextStyle(fontSize: 18, color: Colors.grey),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Appuyez sur le bouton + pour ajouter une promotion',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _filteredDiscounts.length,
+      itemBuilder: (context, index) {
+        final discount = _filteredDiscounts[index];
+        return _buildDiscountCard(discount);
+      },
+    );
+  }
+
+  Widget _buildDiscountCard(Discount discount) {
+    final discountPercentage = ((discount.normalPrice - discount.promotionPrice) / discount.normalPrice * 100).round();
+
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DetailsDiscountScreen(
+              discount: discount,
+              product: Product.getProductById(discount.productId), // Fonction à implémenter
+            ),
+          ),
+        );
+      },
+      child: Card(
+        color: const Color.fromARGB(255, 194, 224, 240),
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              // Image du produit
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  discount.images ?? 'assets/image/empty_promotion.png',
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(width: 16),
+
+              // Détails du produit
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Nom et pourcentage
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            discount.productName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            // ignore: deprecated_member_use
+                            color: Colors.red.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '-$discountPercentage%',
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      discount.productCategory,
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Prix
+                    Row(
+                      children: [
+                        Text(
+                          '${discount.promotionPrice.toStringAsFixed(2)} MAD',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.red,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${discount.normalPrice.toStringAsFixed(2)} MAD',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Actions
+              Column(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.blue),
+                    onPressed: () => _showEditDiscountDialog(discount),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => _showDeleteDiscountDialog(discount),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAddDiscountDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AddDiscountScreen(onAddDiscount: _addDiscount),
+    );
+  }
+
+  void _showEditDiscountDialog(Discount discount) {
+    showDialog(
+      context: context,
+      builder: (context) => EditDiscountScreen(
+        discount: discount,
+        onEditDiscount: _editDiscount,
+      ),
+    );
+  }
+
+  void _showDeleteDiscountDialog(Discount discount) {
+    showDialog(
+      context: context,
+      builder: (context) => DeleteDiscountScreen(
+        discount: discount,
+        onDeleteDiscount: _deleteDiscount,
       ),
     );
   }

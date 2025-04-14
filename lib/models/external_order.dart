@@ -1,5 +1,6 @@
 class ExternalOrder {
   final String id;
+  final String supplierId;
   final String supplierName;
   final DateTime date;
   final PaymentMethod paymentMethod;
@@ -13,6 +14,7 @@ class ExternalOrder {
     static final List<ExternalOrder> externalOrderList = [
     ExternalOrder(
       id: 'CMD-001',
+      supplierId: 'F001',
       supplierName: 'Fournisseur A',
       date: DateTime.now().subtract(Duration(days: 1)),
       paymentMethod: PaymentMethod.cash,
@@ -25,6 +27,7 @@ class ExternalOrder {
     ),
     ExternalOrder(
       id: 'CMD-002',
+      supplierId: 'F002',
       supplierName: 'Fournisseur B',
       date: DateTime.now().subtract(Duration(days: 2)),
       paymentMethod: PaymentMethod.card,
@@ -39,6 +42,7 @@ class ExternalOrder {
 
   ExternalOrder({
     required this.id,
+    required this.supplierId,
     required this.supplierName,
     required this.date,
     required this.paymentMethod,
@@ -58,7 +62,7 @@ class ExternalOrder {
 class OrderItem {
   final String productId;
   final String productName;
-  final double quantity;
+  final int quantity;
   final double unitPrice;
 
   OrderItem({

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stage_pfe/models/supplier.dart';
 import '../../models/external_order.dart';
 import 'add_extern_article_screen.dart';
 import '../../models/product.dart';
@@ -16,8 +17,10 @@ class AddExternalOrderScreen extends StatefulWidget {
 class AddExternalOrderScreenState extends State<AddExternalOrderScreen> {
   // Liste de produits disponibles (remplacez par vos données réelles)
   final List<Product> _availableProducts = Product.getProducts();
+  final List<Supplier> _supplier = Supplier.listSuppliers;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _supplierNameController = TextEditingController();
+   String _supplierId = ''; // ID du fournisseur sélectionné
   OrderStatus _status = OrderStatus.pending;
   PaymentMethod _paymentMethod = PaymentMethod.cash;
   final TextEditingController _totalPriceController = TextEditingController();
@@ -61,6 +64,7 @@ class AddExternalOrderScreenState extends State<AddExternalOrderScreen> {
     if (_formKey.currentState!.validate() && _items.isNotEmpty) {
       final newOrder = ExternalOrder(
         id: 'EXT-${DateTime.now().millisecondsSinceEpoch}',
+        supplierId: _supplierId,
         supplierName: _supplierNameController.text,
         date: _selectedDate,
         paymentMethod: _paymentMethod,
@@ -71,6 +75,18 @@ class AddExternalOrderScreenState extends State<AddExternalOrderScreen> {
         status: _status,
         items: _items,
       );
+
+            // Vérification de l'état de la commande
+      if (_status == OrderStatus.completed) {
+        for (var item in _items) {
+          final productIndex = _availableProducts.indexWhere((product) => product.code == item.productId);
+          if (productIndex != -1) {
+            setState(() {
+              _availableProducts[productIndex].stock += item.quantity;
+            });
+          }
+        }
+      }
       widget.onOrderAdded(newOrder);
       Navigator.of(context).pop();
     } else {
@@ -81,6 +97,73 @@ class AddExternalOrderScreenState extends State<AddExternalOrderScreen> {
         ),
       );
     }
+  }
+
+  Widget _buildFournisseurAutocomplete() {
+    return Autocomplete<Supplier>(
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text.isEmpty) {
+          return const Iterable<Supplier>.empty();
+        }
+        return _supplier.where((supplier) => 
+          supplier.name.toLowerCase().contains(textEditingValue.text.toLowerCase())
+        );
+      },
+      displayStringForOption: (Supplier option) => option.name,
+      fieldViewBuilder: (BuildContext context, 
+                        TextEditingController textEditingController,
+                        FocusNode focusNode, 
+                        VoidCallback onFieldSubmitted) {
+        return TextFormField(
+          controller: textEditingController,
+          focusNode: focusNode,
+          decoration: const InputDecoration(
+            labelText: 'Nom du Fournisseur*',
+            border: OutlineInputBorder(),
+            suffixIcon: Icon(Icons.arrow_drop_down),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Veuillez sélectionner ou saisir un client';
+            }
+            return null;
+          },
+        );
+      },
+      onSelected: (Supplier selection) {
+        setState(() {
+          _supplierNameController.text = selection.name;
+          _supplierId = selection.id;
+        });
+      },
+      optionsViewBuilder: (BuildContext context,
+      AutocompleteOnSelected<Supplier> onSelected,
+      Iterable<Supplier> options) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 4.0,
+            child: SizedBox(
+              height: 200,
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                itemCount: options.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final Supplier option = options.elementAt(index);
+                  return ListTile(
+                    title: Text(option.name),
+                    subtitle: Text(option.email),
+                    onTap: () {
+                      onSelected(option);
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -107,21 +190,7 @@ class AddExternalOrderScreenState extends State<AddExternalOrderScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-
-              // Champ pour le nom du fournisseur
-              TextFormField(
-                controller: _supplierNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nom du Fournisseur*',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Ce champ est obligatoire';
-                  }
-                  return null;
-                },
-              ),
+              _buildFournisseurAutocomplete(),
               const SizedBox(height: 16),
 
               // Sélecteur de date
@@ -318,7 +387,6 @@ class AddExternalOrderScreenState extends State<AddExternalOrderScreen> {
               _totalPriceController.text = returnTotalPrice().toStringAsFixed(2);
               _remainingPriceController.text = returnRemainingPrice().toStringAsFixed(2);
             });
-            Navigator.of(context).pop(items);
           },
         ),
       ),

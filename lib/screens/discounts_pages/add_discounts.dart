@@ -35,9 +35,13 @@ class _AddDiscountScreenState extends State<AddDiscountScreen> {
         id: DateTime.now().toString(), // Génère un ID unique
         title: _titleController.text,
         validity: _validityController.text,
+        productId: '', // Vous pouvez ajouter la logique pour obtenir l'ID du produit
+        productCategory: '', // Vous pouvez ajouter la logique pour obtenir la catégorie du produit
+        images: '', // Vous pouvez ajouter la logique pour obtenir les images du produit
         productName: _productNameController.text,
         normalPrice: double.tryParse(_normalPriceController.text) ?? 0.0,
         promotionPrice: double.tryParse(_promotionPriceController.text) ?? 0.0,
+        description: '',
       );
 
       widget.onAddDiscount(discount);

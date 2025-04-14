@@ -86,6 +86,7 @@ class EditExternalOrderScreenState extends State<EditExternalOrderScreen> {
     if (_formKey.currentState!.validate() && _items.isNotEmpty) {
       final updatedOrder = ExternalOrder(
         id: widget.order.id,
+        supplierId: widget.order.supplierId,
         supplierName: _supplierNameController.text,
         date: _selectedDate,
         paymentMethod: _paymentMethod,
