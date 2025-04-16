@@ -4,7 +4,7 @@ import '/models/supplier.dart';
 class EditSupplierScreen extends StatefulWidget {
   final Supplier supplier;
   final Function(Supplier) onEditSupplier;
-
+//v
   const EditSupplierScreen({
     super.key,
     required this.supplier,
