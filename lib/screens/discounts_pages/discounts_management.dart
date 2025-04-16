@@ -155,7 +155,7 @@ class _DiscountsManagementScreenState extends State<DiscountsManagementScreen> {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(5),
           child: Row(
             children: [
               // Image du produit
@@ -217,6 +217,7 @@ class _DiscountsManagementScreenState extends State<DiscountsManagementScreen> {
                     ),
                     const SizedBox(height: 8),
 
+                    // Prix
                     Wrap(
                       spacing: 16, // Espacement horizontal entre les éléments
                       runSpacing: 8, // Espacement vertical entre les lignes

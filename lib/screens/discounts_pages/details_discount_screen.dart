@@ -391,4 +391,4 @@ class _DetailsDiscountScreenState extends State<DetailsDiscountScreen> {
       ),
     );
   }
-}
+} 
