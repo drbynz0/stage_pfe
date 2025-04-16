@@ -92,7 +92,7 @@ class Discount {
         productCategory: 'Catégorie A',
         productName: 'Produit A',
         normalPrice: 200.0,
-        promotionPrice: 180.0,
+        promotionPrice: 11180.0,
         description: 'Description du produit A',
       ),
       Discount(

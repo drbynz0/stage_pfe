@@ -65,7 +65,9 @@ class DetailsDiscountScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   
                   // Prix et promotion
-                  Row(
+                  Wrap(
+                    spacing: 16, // Espacement horizontal entre les éléments
+                    runSpacing: 8, // Espacement vertical entre les lignes
                     children: [
                       Text(
                         '${discount.promotionPrice.toStringAsFixed(2)} MAD',
@@ -75,16 +77,14 @@ class DetailsDiscountScreen extends StatelessWidget {
                           color: Colors.red,
                         ),
                       ),
-                      const SizedBox(width: 16),
                       Text(
                         '${discount.normalPrice.toStringAsFixed(2)} MAD',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 28,
                           color: Colors.grey[600],
                           decoration: TextDecoration.lineThrough,
                         ),
                       ),
-                      const Spacer(),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
