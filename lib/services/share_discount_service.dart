@@ -31,6 +31,10 @@ class ShareDiscountService {
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url));
     } else {
+      const SnackBar(
+        content: Text('Impossible d\'ouvrir WhatsApp'),
+        duration: Duration(seconds: 2),
+      );
       throw 'Impossible d\'ouvrir WhatsApp';
     }
   }
