@@ -23,6 +23,9 @@ class _DiscountsManagementScreenState extends State<DiscountsManagementScreen> {
     setState(() {
       _discounts.insert(0, discount);
     });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Promotion Ajouté avec succès'), duration: const Duration(seconds: 3), backgroundColor: Colors.green,),
+    );
   }
 
   void _editDiscount(Discount updatedDiscount) {
@@ -32,6 +35,12 @@ class _DiscountsManagementScreenState extends State<DiscountsManagementScreen> {
         _discounts[index] = updatedDiscount;
       }
     });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+          content: Text('Promotion mise à jour avec succès'),
+          backgroundColor: Colors.green,
+        ),
+      );
   }
 
   void _deleteDiscount(String discountId) {
@@ -50,6 +59,8 @@ class _DiscountsManagementScreenState extends State<DiscountsManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    setState(() {
+    });
     return Scaffold(
       appBar: AppBar(
         title: const Text('Promotions en cours', style: TextStyle(fontSize: 20, color: Colors.white)),
@@ -206,18 +217,18 @@ class _DiscountsManagementScreenState extends State<DiscountsManagementScreen> {
                     ),
                     const SizedBox(height: 8),
 
-                    // Prix
-                    Row(
+                    Wrap(
+                      spacing: 16, // Espacement horizontal entre les éléments
+                      runSpacing: 8, // Espacement vertical entre les lignes
                       children: [
                         Text(
                           '${discount.promotionPrice.toStringAsFixed(2)} MAD',
                           style: const TextStyle(
-                            fontWeight: FontWeight.bold,
                             fontSize: 16,
+                            fontWeight: FontWeight.bold,
                             color: Colors.red,
                           ),
                         ),
-                        const SizedBox(width: 8),
                         Text(
                           '${discount.normalPrice.toStringAsFixed(2)} MAD',
                           style: TextStyle(
@@ -228,6 +239,7 @@ class _DiscountsManagementScreenState extends State<DiscountsManagementScreen> {
                         ),
                       ],
                     ),
+
                   ],
                 ),
               ),
@@ -252,22 +264,24 @@ class _DiscountsManagementScreenState extends State<DiscountsManagementScreen> {
     );
   }
 
-  void _showAddDiscountDialog() {
+    void _showAddDiscountDialog() {
     showDialog(
       context: context,
-      builder: (context) => AddDiscountScreen(onAddDiscount: _addDiscount),
-    );
-  }
-
-  void _showEditDiscountDialog(Discount discount) {
-    showDialog(
-      context: context,
-      builder: (context) => EditDiscountScreen(
-        discount: discount,
-        onEditDiscount: _editDiscount,
+      builder: (context) => AddDiscountScreen(
+        onAddDiscount: _addDiscount,
       ),
     );
   }
+
+void _showEditDiscountDialog(Discount discount) {
+  showDialog(
+    context: context,
+    builder: (context) => EditDiscountScreen(
+      discount: discount,
+      onEditDiscount: _editDiscount,
+    ),
+  );
+}
 
   void _showDeleteDiscountDialog(Discount discount) {
     showDialog(

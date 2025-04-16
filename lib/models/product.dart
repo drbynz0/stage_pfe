@@ -142,4 +142,17 @@ class Product {
     description: "",
     ));
     }
+
+    static Product empty() {
+    return Product(
+      code: '',
+      name: '',
+      variants: 0,
+      category: '',
+      stock: 0,
+      price: 0.0,
+      date: '',
+      imagePaths: [],
+    );
+  }
 }

@@ -24,6 +24,7 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
   final TextEditingController _paidPriceController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _remainingPriceController = TextEditingController();
+  String _clientId = '';
 
   DateTime _selectedDate = DateTime.now();
   final List<OrderItem> _items = [];
@@ -62,7 +63,7 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
     if (_formKey.currentState!.validate() && _items.isNotEmpty) {
       final newOrder = InternalOrder(
         id: 'CMD-${DateTime.now().millisecondsSinceEpoch}',
-        clientId: 'C${DateTime.now().millisecondsSinceEpoch}',
+        clientId: _clientId,
         clientName: _clientNameController.text,
         date: _selectedDate,
         paymentMethod: _paymentMethod,
@@ -132,6 +133,7 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
       onSelected: (Client selection) {
         setState(() {
           _clientNameController.text = selection.name;
+          _clientId = selection.id; // Met à jour l'ID du client sélectionné
         });
       },
       optionsViewBuilder: (BuildContext context,
@@ -276,6 +278,12 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
                   labelText: 'Prix Payé',
                   border: OutlineInputBorder(),
                 ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Veuillez entrer un prix payé';
+                  }
+                  return null;
+                },
                 onChanged: (value) {
                   if (value.isNotEmpty) {
                     setState(() {

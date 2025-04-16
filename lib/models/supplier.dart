@@ -1,5 +1,5 @@
 class Supplier {
-  final String id;
+  final String ice;
   final String name;
   final String email;
   final String phone;
@@ -9,7 +9,7 @@ class Supplier {
   final String paymentTerms;
 
   Supplier({
-    required this.id,
+    required this.ice,
     required this.name,
     required this.email,
     required this.phone,
@@ -23,7 +23,7 @@ class Supplier {
   static List<Supplier> get listSuppliers {
     return [
       Supplier(
-        id: '1',
+        ice: '1344343439876',
         name: 'Mohamed Kassi',
         email: 'contact@kassientreprise.ma',
         phone: '0522445566',
@@ -33,7 +33,7 @@ class Supplier {
         paymentTerms: '30 jours',
       ),
       Supplier(
-        id: '2',
+        ice: '2',
         name: 'Fatima Zahra',
         email: 'fz@materiaux-premium.ma',
         phone: '0522889977',
@@ -43,7 +43,7 @@ class Supplier {
         paymentTerms: '45 jours',
       ),
       Supplier(
-        id: '3',
+        ice: '3',
         name: 'Karim El Fassi',
         email: 'k.fassi@batimetal.ma',
         phone: '0522334455',
@@ -57,7 +57,7 @@ class Supplier {
 
   factory Supplier.fromMap(Map<String, dynamic> map) {
     return Supplier(
-      id: map['id'] ?? '',
+      ice: map['id'] ?? '',
       name: map['name'] ?? '',
       email: map['email'] ?? '',
       phone: map['phone'] ?? '',
@@ -70,7 +70,7 @@ class Supplier {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
+      'id': ice,
       'name': name,
       'email': email,
       'phone': phone,
@@ -82,7 +82,7 @@ class Supplier {
   }
 
   Supplier copyWith({
-    String? id,
+    String? ice,
     String? name,
     String? email,
     String? phone,
@@ -92,7 +92,7 @@ class Supplier {
     String? paymentTerms,
   }) {
     return Supplier(
-      id: id ?? this.id,
+      ice: ice ?? this.ice,
       name: name ?? this.name,
       email: email ?? this.email,
       phone: phone ?? this.phone,
@@ -105,7 +105,7 @@ class Supplier {
 
       static Supplier empty() {
     return Supplier(
-      id: '0',
+      ice: '0',
       name: '',
       email: '',
       phone: '',
