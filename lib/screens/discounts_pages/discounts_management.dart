@@ -144,7 +144,7 @@ class _DiscountsManagementScreenState extends State<DiscountsManagementScreen> {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(5),
           child: Row(
             children: [
               // Image du produit
@@ -207,17 +207,18 @@ class _DiscountsManagementScreenState extends State<DiscountsManagementScreen> {
                     const SizedBox(height: 8),
 
                     // Prix
-                    Row(
+                    Wrap(
+                      spacing: 16, // Espacement horizontal entre les éléments
+                      runSpacing: 8, // Espacement vertical entre les lignes
                       children: [
                         Text(
                           '${discount.promotionPrice.toStringAsFixed(2)} MAD',
                           style: const TextStyle(
-                            fontWeight: FontWeight.bold,
                             fontSize: 16,
+                            fontWeight: FontWeight.bold,
                             color: Colors.red,
                           ),
                         ),
-                        const SizedBox(width: 8),
                         Text(
                           '${discount.normalPrice.toStringAsFixed(2)} MAD',
                           style: TextStyle(
