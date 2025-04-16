@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '/models/supplier.dart';
+import '/models/product.dart';
 
 class AddSupplierScreen extends StatefulWidget {
   final Function(Supplier) onAddSupplier;
@@ -17,11 +18,20 @@ class AddSupplierScreenState extends State<AddSupplierScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _companyController = TextEditingController();
+  final TextEditingController _activityController = TextEditingController();
+
+  final List<Product> products = Product.getProducts();
+  String productId = '';
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       final newSupplier = Supplier(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        ice: DateTime.now().millisecondsSinceEpoch.toString(),
         name: _nameController.text,
         email: _emailController.text,
         phone: _phoneController.text,
@@ -44,6 +54,132 @@ class AddSupplierScreenState extends State<AddSupplierScreen> {
     _addressController.dispose();
     _companyController.dispose();
     super.dispose();
+  }
+
+  Widget _buildCompanyAutocomplete() {
+    return Autocomplete<Product>(
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text.isEmpty) {
+          return const Iterable<Product>.empty();
+        }
+        return products.where((client) =>
+            client.category.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+      },
+      displayStringForOption: (Product option) => option.category,
+      fieldViewBuilder: (BuildContext context, TextEditingController textEditingController,
+          FocusNode focusNode, VoidCallback onFieldSubmitted) {
+        return TextFormField(
+          controller: textEditingController,
+          focusNode: focusNode,
+          decoration: const InputDecoration(
+            labelText: 'Compagnie',
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.business),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Veuillez entrer une compagnie';
+            }
+            return null;
+          },
+        );
+      },
+      onSelected: (Product selection) {
+        setState(() {
+          _companyController.text = selection.category;
+          productId = selection.code;
+        });
+      },
+      optionsViewBuilder: (BuildContext context, AutocompleteOnSelected<Product> onSelected,
+          Iterable<Product> options) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 4.0,
+            child: SizedBox(
+              height: 200,
+              width: MediaQuery.of(context).size.width - 90,
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                itemCount: options.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final Product option = options.elementAt(index);
+                  return ListTile(
+                    title: Text(option.category),
+                    onTap: () {
+                      onSelected(option);
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildActivityAutocomplete() {
+    return Autocomplete<Product>(
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text.isEmpty) {
+          return const Iterable<Product>.empty();
+        }
+        return products.where((product) =>
+            product.category.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+      },
+      displayStringForOption: (Product option) => option.name,
+      fieldViewBuilder: (BuildContext context, TextEditingController textEditingController,
+          FocusNode focusNode, VoidCallback onFieldSubmitted) {
+        return TextFormField(
+          controller: textEditingController,
+          focusNode: focusNode,
+          decoration: const InputDecoration(
+            labelText: 'Activité',
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.shopping_cart),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Veuillez entrer une activité';
+            }
+            return null;
+          },
+        );
+      },
+      onSelected: (Product selection) {
+        setState(() {
+          _activityController.text = selection.name;
+          productId = selection.code;
+        });
+      },
+      optionsViewBuilder: (BuildContext context, AutocompleteOnSelected<Product> onSelected,
+          Iterable<Product> options) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 4.0,
+            child: SizedBox(
+              height: 200,
+              width: MediaQuery.of(context).size.width - 90,
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                itemCount: options.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final Product option = options.elementAt(index);
+                  return ListTile(
+                    title: Text(option.category),
+                    onTap: () {
+                      onSelected(option);
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -70,7 +206,7 @@ class AddSupplierScreenState extends State<AddSupplierScreen> {
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
-                  labelText: 'Nom du fournisseur',
+                  labelText: 'Nom du responsable',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.person),
                 ),
@@ -129,6 +265,12 @@ class AddSupplierScreenState extends State<AddSupplierScreen> {
                   prefixIcon: Icon(Icons.location_on),
                 ),
               ),
+              const SizedBox(height: 24),
+
+              _buildCompanyAutocomplete(),
+              const SizedBox(height: 24),
+
+              _buildActivityAutocomplete(),
               const SizedBox(height: 24),
 
               // Boutons

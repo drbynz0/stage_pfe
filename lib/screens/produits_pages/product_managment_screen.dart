@@ -233,13 +233,17 @@ class ProductManagementScreenState extends State<ProductManagementScreen> {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
+                              Wrap(
                                 children: [
-                                  Text('${product.variants} variants • ${product.category}'),
+                                  Text('${product.variants} variants -'),
+                                  const SizedBox(width: 5,),
+                                  Text(
+                                    product.category,
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 4),
-                              Row(
+                              Wrap(
                                 children: [
                                   Text(
                                     '${product.stock} en stock',
@@ -247,7 +251,7 @@ class ProductManagementScreenState extends State<ProductManagementScreen> {
                                       color: product.stock <= 10 ? Colors.red : Colors.green,
                                     ),
                                   ),
-                                  const Spacer(),
+                                  const SizedBox(width: 10),
                                   Text(
                                     '${product.price.toStringAsFixed(2)} DH',
                                     style: const TextStyle(
@@ -318,67 +322,67 @@ class ProductManagementScreenState extends State<ProductManagementScreen> {
             ],
           ),
           // Bouton de scanne produit
-Positioned(
-  right: 23,
-  bottom: 120,
-  child: IconButton(
-    onPressed: () async {
-      final scannedBarcode = await _scanBarcode(); // Appel de la méthode _scanBarcode
-      if (scannedBarcode != null) {
-        try {
-          // Recherche du produit correspondant
-          final matchingProduct = products.firstWhere(
-            (product) => product.code == scannedBarcode,
-          );
+          Positioned(
+            right: 23,
+            bottom: 120,
+            child: IconButton(
+              onPressed: () async {
+                final scannedBarcode = await _scanBarcode(); // Appel de la méthode _scanBarcode
+                if (scannedBarcode != null) {
+                  try {
+                    // Recherche du produit correspondant
+                    final matchingProduct = products.firstWhere(
+                      (product) => product.code == scannedBarcode,
+                    );
 
-          // Afficher un message de succès
-          // ignore: use_build_context_synchronously
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Produit trouvé : ${matchingProduct.name}'),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 3),
-            ),
-          );
+                    // Afficher un message de succès
+                    // ignore: use_build_context_synchronously
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Produit trouvé : ${matchingProduct.name}'),
+                        backgroundColor: Colors.green,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
 
-          // Naviguer vers les détails du produit scanné
-          Navigator.push(
-            // ignore: use_build_context_synchronously
-            context,
-            MaterialPageRoute(
-              builder: (context) => DetailsProductScreen(product: matchingProduct),
+                    // Naviguer vers les détails du produit scanné
+                    Navigator.push(
+                      // ignore: use_build_context_synchronously
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DetailsProductScreen(product: matchingProduct),
+                      ),
+                    );
+                  } catch (e) {
+                    // Afficher un message d'erreur si aucun produit n'est trouvé
+                    // ignore: use_build_context_synchronously
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Aucun produit trouvé pour le code $scannedBarcode'),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                } else {
+                  // Afficher un message si le scan est annulé
+                  // ignore: use_build_context_synchronously
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Scan annulé'),
+                      backgroundColor: Colors.orange,
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(
+                Icons.barcode_reader,
+                color: Color.fromARGB(255, 18, 65, 85),
+                size: 30,
+              ),
             ),
-          );
-        } catch (e) {
-          // Afficher un message d'erreur si aucun produit n'est trouvé
-          // ignore: use_build_context_synchronously
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Aucun produit trouvé pour le code $scannedBarcode'),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        }
-      } else {
-        // Afficher un message si le scan est annulé
-        // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Scan annulé'),
-            backgroundColor: Colors.orange,
-            duration: Duration(seconds: 3),
           ),
-        );
-      }
-    },
-    icon: const Icon(
-      Icons.barcode_reader,
-      color: Color.fromARGB(255, 18, 65, 85),
-      size: 30,
-    ),
-  ),
-),
           Positioned(
             right: 15,
             bottom: 60,

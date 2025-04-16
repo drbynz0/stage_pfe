@@ -48,7 +48,7 @@ class DetailsExternalOrderScreenState extends State<DetailsExternalOrderScreen> 
             InkWell(
               onTap: () {
                 // Naviguer vers la page des détails du client
-                final supplier = _supplier.firstWhere((c) => c.id == order.supplierId, orElse: () => Supplier.empty());
+                final supplier = _supplier.firstWhere((c) => c.ice == order.supplierId, orElse: () => Supplier.empty());
                 if (supplier != Supplier.empty()) {
                   Navigator.push(
                     context,

@@ -53,7 +53,7 @@ class Discount {
     String? validity,
     String? productName,
     double? normalPrice,
-    double? promotionPrice,
+    double? promotionPrice, required String productId, required String productCategory, required String description,
   }) {
     return Discount(
       id: id ?? this.id,
@@ -127,4 +127,6 @@ class Discount {
   static List<Discount> getDiscountListById(String id) {
     return getDiscountList().where((discount) => discount.id == id).toList();
   }
+
+  
 }

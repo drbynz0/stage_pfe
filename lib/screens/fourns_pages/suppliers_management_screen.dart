@@ -19,17 +19,20 @@ class _SuppliersManagementScreenState extends State<SuppliersManagementScreen> {
 
   void _addSupplier(Supplier supplier) {
     setState(() => _suppliers.add(supplier));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Founisseur Ajouté avec succès'), duration: const Duration(seconds: 3), backgroundColor: Colors.green,),
+    );
   }
 
   void _editSupplier(Supplier updatedSupplier) {
     setState(() {
-      final index = _suppliers.indexWhere((s) => s.id == updatedSupplier.id);
+      final index = _suppliers.indexWhere((s) => s.ice == updatedSupplier.ice);
       if (index != -1) _suppliers[index] = updatedSupplier;
     });
   }
 
   void _deleteSupplier(String id) {
-    setState(() => _suppliers.removeWhere((s) => s.id == id));
+    setState(() => _suppliers.removeWhere((s) => s.ice == id));
   }
 
   List<Supplier> get paginatedSuppliers {
@@ -47,7 +50,7 @@ class _SuppliersManagementScreenState extends State<SuppliersManagementScreen> {
           'Gestion des Fournisseurs',
           style: TextStyle(color: Colors.white), // Texte en blanc
         ),
-        backgroundColor: const Color(0xFF004A99), // Couleur de la barre en bleu
+        backgroundColor: const Color(0xFF003366),
         iconTheme: const IconThemeData(color: Colors.white), // Icônes en blanc
         elevation: 4, // Ombre sous l'AppBar
       ),
@@ -61,10 +64,11 @@ class _SuppliersManagementScreenState extends State<SuppliersManagementScreen> {
                 itemBuilder: (context, index) {
                   final supplier = paginatedSuppliers[index];
                   return Card(
+                    color: const Color.fromARGB(255, 194, 224, 240),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16), // Coins arrondis
                     ),
-                    elevation: 4, // Ombre pour un effet de profondeur
+                    elevation: 4,
                     margin: const EdgeInsets.symmetric(vertical: 8.0), // Espacement entre les cartes
                     child: InkWell(
                       onTap: () => _navigateToDetailsScreen(context, supplier), // Lien vers les détails
@@ -123,7 +127,7 @@ class _SuppliersManagementScreenState extends State<SuppliersManagementScreen> {
                                 IconButton(
                                   icon: const Icon(Icons.delete, color: Colors.red),
                                   tooltip: 'Supprimer',
-                                  onPressed: () => _showDeleteDialog(context, supplier.id),
+                                  onPressed: () => _showDeleteDialog(context, supplier.ice),
                                 ),
                               ],
                             ),
@@ -176,7 +180,7 @@ class _SuppliersManagementScreenState extends State<SuppliersManagementScreen> {
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 55.0), // Ajustez la valeur pour déplacer le bouton vers le haut
         child: FloatingActionButton(
-          onPressed: () => _navigateToAddScreen(context),
+          onPressed: () => _showAddSupplierDialog(),
           backgroundColor: const Color(0xFF004A99),
           child: const Icon(Icons.add, color: Colors.white),
         ),
@@ -185,11 +189,12 @@ class _SuppliersManagementScreenState extends State<SuppliersManagementScreen> {
     );
   }
 
-  void _navigateToAddScreen(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => add_screen.AddSupplierScreen(onAddSupplier: _addSupplier),
+
+    void _showAddSupplierDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => add_screen.AddSupplierScreen(
+        onAddSupplier: _addSupplier,
       ),
     );
   }

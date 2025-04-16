@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import '/models/discounts.dart';
 import '/models/product.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+import 'edit_discounts.dart';
+import '/services/share_discount_service.dart';
 
-class DetailsDiscountScreen extends StatelessWidget {
+class DetailsDiscountScreen extends StatefulWidget {
   final Discount discount;
-  final Product product; // Produit associé récupéré via l'ID du discount
+  final Product product;
 
   const DetailsDiscountScreen({
     super.key,
@@ -14,22 +16,57 @@ class DetailsDiscountScreen extends StatelessWidget {
   });
 
   @override
+  State<DetailsDiscountScreen> createState() => _DetailsDiscountScreenState();
+}
+
+class _DetailsDiscountScreenState extends State<DetailsDiscountScreen> {
+  late Discount discount;
+  late Product product;
+
+  @override
+  void initState() {
+    super.initState();
+    discount = widget.discount;
+    product = widget.product;
+  }
+
+  void _showEditDiscountDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => EditDiscountScreen(
+        discount: discount,
+        onEditDiscount: (updatedDiscount) {
+          setState(() {
+            discount = updatedDiscount;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Promotion mise à jour avec succès'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final discountPercentage = ((discount.normalPrice - discount.promotionPrice) / 
                              discount.normalPrice * 100).round();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Détails de la Promotion', 
-            style: TextStyle(fontSize: 20, color: Colors.white)),
+        title: const Text(
+          'Détails de la Promotion',
+          style: TextStyle(fontSize: 20, color: Colors.white),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: const Color(0xFF003366),
         actions: [
           IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {
-              // Fonctionnalité de partage
-            },
+            icon: const Icon(Icons.edit),
+            onPressed: _showEditDiscountDialog,
           ),
         ],
       ),
@@ -65,9 +102,7 @@ class DetailsDiscountScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   
                   // Prix et promotion
-                  Wrap(
-                    spacing: 16, // Espacement horizontal entre les éléments
-                    runSpacing: 8, // Espacement vertical entre les lignes
+                  Row(
                     children: [
                       Text(
                         '${discount.promotionPrice.toStringAsFixed(2)} MAD',
@@ -77,14 +112,16 @@ class DetailsDiscountScreen extends StatelessWidget {
                           color: Colors.red,
                         ),
                       ),
+                      const SizedBox(width: 16),
                       Text(
                         '${discount.normalPrice.toStringAsFixed(2)} MAD',
                         style: TextStyle(
-                          fontSize: 28,
+                          fontSize: 20,
                           color: Colors.grey[600],
                           decoration: TextDecoration.lineThrough,
                         ),
                       ),
+                      const Spacer(),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -245,16 +282,12 @@ class DetailsDiscountScreen extends StatelessWidget {
           const SizedBox(width: 12),
           Text(
             label,
-            style: TextStyle(
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(color: Colors.grey[600]),
           ),
           const SizedBox(width: 8),
           Text(
             value,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -262,38 +295,62 @@ class DetailsDiscountScreen extends StatelessWidget {
   }
 
   Widget _buildActionButtons() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.shopping_cart),
-              label: const Text('Ajouter au panier'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: Colors.orange,
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.link, color: Colors.black),
+                label: const Text(
+                  'Voir dans le site',
+                  style: TextStyle(color: Colors.black),
+                ),
+                onPressed: () {
+                  // Action pour voir dans le site
+                },
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
               ),
-              onPressed: () {
-                // Ajouter au panier
-              },
+            ),
+            const SizedBox(width: 16),
+        Expanded(
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.share, color: Colors.white),
+            label: const Text(
+              'Partager',
+              style: TextStyle(color: Colors.white),
+            ),
+            onPressed: () async {
+              try {
+                await ShareDiscountService.showShareOptions(
+                  context: context,
+                  discount: discount,
+                  product: product,
+                  imagePath: product.imagePaths?.isNotEmpty == true 
+                      ? product.imagePaths!.first 
+                      : null,
+                );
+              } catch (e) {
+                // ignore: use_build_context_synchronously
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Erreur lors du partage: ${e.toString()}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              backgroundColor: const Color(0xFF004A99),
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.attach_money),
-              label: const Text('Acheter maintenant'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: Colors.green,
-              ),
-              onPressed: () {
-                // Procéder au paiement
-              },
-            ),
-          ),
-        ],
+        ),
+          ],
+        ),
       ),
     );
   }

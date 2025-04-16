@@ -124,7 +124,7 @@ class AddExternalOrderScreenState extends State<AddExternalOrderScreen> {
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Veuillez sélectionner ou saisir un client';
+              return 'Veuillez ajouter un client';
             }
             return null;
           },
@@ -133,7 +133,7 @@ class AddExternalOrderScreenState extends State<AddExternalOrderScreen> {
       onSelected: (Supplier selection) {
         setState(() {
           _supplierNameController.text = selection.name;
-          _supplierId = selection.id;
+          _supplierId = selection.ice;
         });
       },
       optionsViewBuilder: (BuildContext context,
@@ -266,6 +266,12 @@ class AddExternalOrderScreenState extends State<AddExternalOrderScreen> {
                   labelText: 'Prix Total',
                   border: OutlineInputBorder(),
                 ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Prix total requis';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
 
@@ -276,6 +282,12 @@ class AddExternalOrderScreenState extends State<AddExternalOrderScreen> {
                   labelText: 'Prix Payé',
                   border: OutlineInputBorder(),
                 ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Veuillez entrer un prix payé';
+                  }
+                  return null;
+                },
                 onChanged: (value) {
                   if (value.isNotEmpty) {
                     setState(() {

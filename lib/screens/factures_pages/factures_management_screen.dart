@@ -11,7 +11,8 @@ class FacturesManagementScreen extends StatelessWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Gestion des Factures'),
+          title: const Text('Gestion des Factures', style: TextStyle(color: Colors.white)),
+          iconTheme: const IconThemeData(color: Colors.white),
           backgroundColor: const Color(0xFF003366),
           bottom: const TabBar(
             unselectedLabelColor: Color.fromARGB(179, 132, 134, 134),
