@@ -108,7 +108,7 @@ class ShareDiscountService {
 💲 Prix promo: ${discount.promotionPrice.toStringAsFixed(2)} MAD
 🤑 Économisez: $discountPercentage%
 
-📅 Valable jusqu'au: ${discount.validity}
+📅 Validité: ${discount.validity}
 
 📝 Description: ${discount.description}
 
