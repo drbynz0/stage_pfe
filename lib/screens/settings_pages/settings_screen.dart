@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
-
-class SettingsScreen extends StatelessWidget {
+import 'change_password_screen.dart';
+import 'pin_code_screen.dart';
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool pinEnabled = false;
+  bool fingerprintEnabled = false;
 
   @override
   Widget build(BuildContext context) {
@@ -34,51 +43,13 @@ class SettingsScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          _buildSettingsSection(
-            title: 'Préférences',
-            children: [
-              _buildSettingsTile(
-                icon: Icons.color_lens,
-                title: 'Thème',
-                subtitle: 'Mode clair',
-                onTap: () {
-                  // Changer le thème
-                },
-              ),
-              _buildSettingsTile(
-                icon: Icons.language,
-                title: 'Langue',
-                subtitle: 'Français',
-                onTap: () {
-                  // Changer la langue
-                },
-              ),
-            ],
-          ),
+
+          // Section Sécurité - Séparée
+          _buildSecuritySection(),
+
           const SizedBox(height: 24),
           _buildSettingsSection(
-            title: 'Sécurité',
-            children: [
-              _buildSettingsTile(
-                icon: Icons.lock,
-                title: 'Changer le mot de passe',
-                onTap: () {
-                  // Naviguer vers le changement de mot de passe
-                },
-              ),
-              _buildSettingsTile(
-                icon: Icons.security,
-                title: 'Authentification à deux facteurs',
-                trailing: Switch(
-                  value: false,
-                  onChanged: (value) {},
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          _buildSettingsSection(
-            title: 'A propos',
+            title: 'À propos',
             children: [
               _buildSettingsTile(
                 icon: Icons.info,
@@ -111,6 +82,87 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  // Section Sécurité séparée
+  Widget _buildSecuritySection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 16.0, bottom: 8.0),
+          child: Text(
+            'Sécurité',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF003366),
+            ),
+          ),
+        ),
+        // Option pour changer le mot de passe
+        Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: _buildSettingsTile(
+            icon: Icons.lock,
+            title: 'Changer le mot de passe',
+            onTap: () {
+  Navigator.push( 
+    context,
+    MaterialPageRoute(builder: (context) => const ChangePasswordScreen()),
+  );
+},
+
+          ),
+        ),
+        // Option pour activer/désactiver le PIN
+        Card(
+  margin: const EdgeInsets.only(bottom: 8),
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(12),
+  ),
+  child: ListTile(
+    leading: const Icon(Icons.pin, color: Color(0xFF004A99)),
+    title: const Text('PIN'),
+    trailing: Icon(
+      Icons.arrow_forward_ios,
+      color: pinEnabled ? Colors.blue : Colors.grey,
+    ),
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const PinCodeScreen()),
+      );
+    },
+  ),
+),
+
+        // Option pour activer/désactiver l'empreinte digitale
+        Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: ListTile(
+            leading: const Icon(Icons.fingerprint, color: Color(0xFF004A99)),
+            title: const Text('Empreinte digitale'),
+            subtitle: const Text('Utiliser l\'empreinte digitale pour déverrouiller'),
+            trailing: Icon(
+              Icons.arrow_forward_ios,
+              color: fingerprintEnabled ? Colors.blue : Colors.grey,
+            ),
+            onTap: () {
+              setState(() {
+                fingerprintEnabled = !fingerprintEnabled;
+              });
+            },
+          ),
+        ),
+      ],
     );
   }
 
