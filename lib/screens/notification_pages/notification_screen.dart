@@ -42,11 +42,4 @@ class NotificationScreen extends StatelessWidget {
       SnackBar(content: Text('Action: ${notification.title}')),
     );
   }
-
-  void _markAllAsRead(BuildContext context) {
-    // Implémentation réelle: Appel API ou mise à jour du state
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Toutes les notifications marquées comme lues')),
-    );
-  }
 }

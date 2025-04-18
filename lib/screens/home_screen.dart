@@ -8,6 +8,8 @@ import '../models/internal_order.dart';
 import '../widgets/stats_vente.dart';
 import 'package:provider/provider.dart';
 import '../services/app_data_service.dart';
+import 'notification_pages/notification_screen.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,6 +23,7 @@ class HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 2;
   late final List<Widget> _pages;
   final List<InternalOrder> _internalOrders = InternalOrder.getInternalOrderList();
+   int _unreadNotificationsCount = 3;
 
   @override
   void initState() {
@@ -227,14 +230,48 @@ class HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           Stack(
-            children: [
+children: [
               IconButton(
                 icon: const Icon(Icons.notifications, color: Colors.white),
-                onPressed: () =>{},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const NotificationScreen()),
+                  ).then((_) {
+                    // Quand on revient de la page de notifications, on peut mettre à jour le compteur
+                    setState(() {
+                      _unreadNotificationsCount = 0;
+                    });
+                  });
+                },
+              ),
+              if (_unreadNotificationsCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 12,
+                      minHeight: 12,
+                    ),
+                    child: Text(
+                      _unreadNotificationsCount.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),            
+],
               ),
             ],
-          ),
-        ],
       ),
       drawer: Drawer(
         child: ListView(
