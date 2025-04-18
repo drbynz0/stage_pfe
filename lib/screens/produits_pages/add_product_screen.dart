@@ -27,13 +27,12 @@ class AddProductScreenState extends State<AddProductScreen> {
   final TextEditingController _descriptionController = TextEditingController();
   final List<File?> _imageFiles = List.filled(4, null);
 
+
   final List<Product> products = Product.getProducts();
-  late List<String> _existingCategories;
 
   @override
   void initState() {
     super.initState();
-    _existingCategories = products.map((p) => p.category).toSet().toList();
   }
 
   Future<void> _pickImage(int index) async {
@@ -141,6 +140,70 @@ class AddProductScreenState extends State<AddProductScreen> {
     super.dispose();
   }
 
+  Widget _buildProductAutocomplete() {
+    return Autocomplete<Product>(
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text.isEmpty) {
+          return const Iterable<Product>.empty();
+        }
+        return products.where((product) =>
+            product.category.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+      },
+      displayStringForOption: (Product option) => option.name,
+      fieldViewBuilder: (BuildContext context, TextEditingController textEditingController,
+          FocusNode focusNode, VoidCallback onFieldSubmitted) {
+        return TextFormField(
+          controller: textEditingController,
+          focusNode: focusNode,
+          decoration: InputDecoration(
+            labelText: 'Catégorie',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            prefixIcon: Icon(Icons.shopping_cart),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Veuillez entrer une catégorie';
+            }
+            return null;
+          },
+        );
+      },
+      onSelected: (Product selection) {
+        setState(() {
+          _categoryController.text = selection.category;
+        });
+      },
+      optionsViewBuilder: (BuildContext context, AutocompleteOnSelected<Product> onSelected,
+          Iterable<Product> options) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 4.0,
+            child: SizedBox(
+              height: 200,
+              width: MediaQuery.of(context).size.width - 90,
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                itemCount: options.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final Product option = options.elementAt(index);
+                  return ListTile(
+                    title: Text(option.category),
+                    onTap: () {
+                      onSelected(option);
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -154,10 +217,21 @@ class AddProductScreenState extends State<AddProductScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'Ajouter un produit',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Ajouter un produit',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                    color: Colors.grey[600],
+                  ),
+                ]
+                    
               ),
               const SizedBox(height: 20),
 
@@ -209,9 +283,11 @@ class AddProductScreenState extends State<AddProductScreen> {
                   Expanded(
                     child: TextFormField(
                       controller: _codeController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Code du produit',
-                        border: OutlineInputBorder(),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         prefixIcon: Icon(Icons.code),
                       ),
                       validator: (value) {
@@ -262,9 +338,11 @@ class AddProductScreenState extends State<AddProductScreen> {
 
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Nom du produit',
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   prefixIcon: Icon(Icons.shopping_bag),
                 ),
                 validator: (value) {
@@ -278,10 +356,12 @@ class AddProductScreenState extends State<AddProductScreen> {
 
               TextFormField(
                 controller: _priceController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Prix',
-                  border: OutlineInputBorder(),
-                  prefixText: 'DH ',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                prefixText: 'DH ',
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
@@ -298,9 +378,11 @@ class AddProductScreenState extends State<AddProductScreen> {
 
               TextFormField(
                 controller: _stockController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Quantité en stock',
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   prefixIcon: Icon(Icons.inventory),
                 ),
                 keyboardType: TextInputType.number,
@@ -318,9 +400,11 @@ class AddProductScreenState extends State<AddProductScreen> {
 
               TextFormField(
                 controller: _variantsController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Variantes',
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   prefixIcon: Icon(Icons.view_list),
                 ),
                 keyboardType: TextInputType.number,
@@ -336,49 +420,15 @@ class AddProductScreenState extends State<AddProductScreen> {
               ),
               const SizedBox(height: 16),
 
-              TextFormField(
-                controller: _categoryController,
-                decoration: const InputDecoration(
-                  labelText: 'Catégorie',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.category),
-                ),
-                onChanged: (value) {
-                  setState(() {});
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer une catégorie';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 8),
-
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _existingCategories
-                    .where((category) => category.toLowerCase().contains(_categoryController.text.toLowerCase()))
-                    .map((category) => GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _categoryController.text = category;
-                            });
-                          },
-                          child: Chip(
-                            label: Text(category),
-                            backgroundColor: Colors.blue.shade100,
-                          ),
-                        ))
-                    .toList(),
-              ),
+              _buildProductAutocomplete(),
               const SizedBox(height: 24),
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Description',
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   prefixIcon: Icon(Icons.description),
                 ),
                 keyboardType: TextInputType.number,
@@ -386,30 +436,17 @@ class AddProductScreenState extends State<AddProductScreen> {
               ),
               const SizedBox(height: 24),
 
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        minimumSize: const Size(double.infinity, 50),
-                      ),
-                      child: const Text('Annuler', style: TextStyle(fontSize: 16)),               ),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _submitForm,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF004A99),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _submitForm,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF004A99),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: const Text('Ajouter', style: TextStyle(fontSize: 16, color: Colors.white)),
-                    ),
-                  ),
-                ],
-              ),
+                  child: const Text('Ajouter', style: TextStyle(fontSize: 16, color: Colors.white)),
+                ),
+              )
             ],
           ),
         ),

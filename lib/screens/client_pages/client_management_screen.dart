@@ -19,12 +19,6 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
   int _currentPage = 1;
   final int _itemsPerPage = 5;
 
-  void _addClient(Client client) {
-    setState(() {
-      _clients.add(client);
-    });
-  }
-
   void _editClient(Client updatedClient) {
     setState(() {
       final index = _clients.indexWhere((c) => c.id == updatedClient.id);
@@ -254,19 +248,28 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
             bottom: 65,
             right: 15, // Changez ces valeurs pour personnaliser la position
             child: FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AddClientScreen(onAddClient: _addClient),
-                  ),
-                );
-              },
+              onPressed: _showAddClientDialog,
               backgroundColor: const Color(0xFF004A99),
               child: const Icon(Icons.add, color: Colors.white),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+    void _showAddClientDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AddClientScreen(
+        onAddClient: (newClient) {
+          setState(() {
+            _clients.insert(0, newClient);
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Client Ajouté avec succès'), duration: const Duration(seconds: 3), backgroundColor: Colors.green,),
+          );        
+        },
       ),
     );
   }

@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'add_product_screen.dart';
 import '/models/product.dart';
@@ -19,7 +18,7 @@ class ProductManagementScreen extends StatefulWidget {
 }
 
 class ProductManagementScreenState extends State<ProductManagementScreen> {
-  final List<Product> products = Product.getProducts();
+  final List<Product> products = Product.productList;
 
   String _searchQuery = '';
   String _selectedCategory = 'Tout';

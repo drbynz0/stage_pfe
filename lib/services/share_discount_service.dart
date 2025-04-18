@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
@@ -59,14 +61,40 @@ class ShareDiscountService {
     required Product product,
     required String imagePath,
   }) async {
-    // Note: Instagram n'accepte pas le partage direct de texte depuis une URL
-    // Cette fonction partagera l'image avec un hashtag
-    final String text = '#Promotion #${product.category.replaceAll(' ', '')}';
-    
-    await Share.shareXFiles(
-      [XFile(imagePath)],
-      text: text,
-    );
+    try {
+      // 1. Vérifier si l'image existe
+      final file = XFile(imagePath);
+      final exists = await File(file.path).exists();
+      if (!exists) {
+        throw Exception("L'image n'existe pas");
+      }
+
+      // 2. Préparer le texte avec des hashtags
+      final categoryHashtag = product.category.isNotEmpty 
+          ? '#${product.category.replaceAll(' ', '')}' 
+          : '';
+      final text = [
+        '🔥 Promotion Exclusive 🔥',
+        '${product.name} - ${discount.promotionPrice.toStringAsFixed(2)} MAD',
+        'Économisez ${((discount.normalPrice - discount.promotionPrice) / discount.normalPrice * 100).round()}%',
+        categoryHashtag,
+        '#Promo #Shopping'
+      ].join('\n');
+
+      // 3. Partager avec l'option Instagram si disponible
+      await Share.shareXFiles(
+        [file],
+        text: text,
+        sharePositionOrigin: Rect.zero,
+      );
+
+    } catch (e) {
+      // Fallback: Partage générique si Instagram échoue
+      await Share.share(
+        _generateShareText(discount, product),
+        subject: 'Promotion ${product.name}',
+      );
+    }
   }
 
   static Future<void> shareViaEmail({

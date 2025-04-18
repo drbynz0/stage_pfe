@@ -31,7 +31,7 @@ class InternalOrder {
       date: DateTime.now().subtract(Duration(days: 2)),
       paymentMethod: PaymentMethod.card,
       totalPrice: 150.00,
-      paidPrice: 150.00,
+      paidPrice: 350.00,
       remainingPrice: 0.00,
       status: OrderStatus.completed,
       items: [],
