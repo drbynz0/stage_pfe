@@ -12,6 +12,7 @@ class FacturesExternalScreenState extends State<FacturesExternalScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   List<FactureFournisseur> externalFactures = FactureFournisseur.getExternalFactures();
+  
 
   List<FactureFournisseur> _filterFactures(List<FactureFournisseur> factures) {
     return factures.where((facture) {

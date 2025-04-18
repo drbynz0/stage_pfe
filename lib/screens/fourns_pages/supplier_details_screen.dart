@@ -23,7 +23,7 @@ class SupplierDetailsScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF003366),
         title: const Text(
-          'Détails du client',
+          'Détails du Fournisseur',
           style: TextStyle(color: Colors.white),
         ),
         iconTheme: const IconThemeData(color: Colors.white), // Flèche de retour en blanc
@@ -35,7 +35,7 @@ class SupplierDetailsScreen extends StatelessWidget {
           children: [
             // Détails du client
             const Text(
-              'Informations du client',
+              'Informations du Fournisseur',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
@@ -63,7 +63,6 @@ class SupplierDetailsScreen extends StatelessWidget {
                     _buildDetailRow('Téléphone', supplier.phone),
                     const SizedBox(height: 8),
                     _buildDetailRow('Adresse', supplier.address),
-                    _buildDetailRow('ICE', supplier.ice),
                   ],
                 ),
               ),

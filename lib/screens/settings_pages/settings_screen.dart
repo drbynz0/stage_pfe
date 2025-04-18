@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:stage_pfe/screens/settings_pages/Fingerprint_options_screen';
 import 'change_password_screen.dart';
-import 'pin_code_screen.dart';
+import 'pin_options_screen.dart';
+
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -11,6 +14,9 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool pinEnabled = false;
   bool fingerprintEnabled = false;
+  bool notificationsEnabled = true; // <== Pour gérer les notifications
+
+  final LocalAuthentication _localAuth = LocalAuthentication();
 
   @override
   Widget build(BuildContext context) {
@@ -28,25 +34,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildSettingsTile(
                 icon: Icons.person,
                 title: 'Profil',
-                onTap: () {
-                  // Naviguer vers la page de profil
-                },
+                onTap: () {},
               ),
               _buildSettingsTile(
-                icon: Icons.notifications,
+                icon: notificationsEnabled
+                    ? Icons.notifications_active
+                    : Icons.notifications_off,
                 title: 'Notifications',
                 trailing: Switch(
-                  value: true,
-                  onChanged: (value) {},
+                  value: notificationsEnabled,
+                  onChanged: (v) {
+                    setState(() {
+                      notificationsEnabled = v;
+                    });
+                  },
                 ),
               ),
             ],
           ),
           const SizedBox(height: 24),
-
-          // Section Sécurité - Séparée
           _buildSecuritySection(),
-
           const SizedBox(height: 24),
           _buildSettingsSection(
             title: 'À propos',
@@ -59,9 +66,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildSettingsTile(
                 icon: Icons.help,
                 title: 'Aide & Support',
-                onTap: () {
-                  // Naviguer vers la page d'aide
-                },
+                onTap: () {},
               ),
             ],
           ),
@@ -73,10 +78,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
               child: const Text(
                 'Déconnexion',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: Colors.red, fontSize: 16),
               ),
             ),
           ),
@@ -85,80 +87,101 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // Section Sécurité séparée
   Widget _buildSecuritySection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 16.0, bottom: 8.0),
+        const Padding(
+          padding: EdgeInsets.only(left: 16.0, bottom: 8.0),
           child: Text(
             'Sécurité',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Color(0xFF003366),
             ),
           ),
         ),
-        // Option pour changer le mot de passe
         Card(
           margin: const EdgeInsets.only(bottom: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: _buildSettingsTile(
             icon: Icons.lock,
             title: 'Changer le mot de passe',
             onTap: () {
-  Navigator.push( 
-    context,
-    MaterialPageRoute(builder: (context) => const ChangePasswordScreen()),
-  );
-},
-
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ChangePasswordScreen()),
+              );
+            },
           ),
         ),
-        // Option pour activer/désactiver le PIN
-        Card(
-  margin: const EdgeInsets.only(bottom: 8),
-  shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(12),
-  ),
-  child: ListTile(
-    leading: const Icon(Icons.pin, color: Color(0xFF004A99)),
-    title: const Text('PIN'),
-    trailing: Icon(
-      Icons.arrow_forward_ios,
-      color: pinEnabled ? Colors.blue : Colors.grey,
-    ),
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const PinCodeScreen()),
-      );
-    },
-  ),
-),
-
-        // Option pour activer/désactiver l'empreinte digitale
         Card(
           margin: const EdgeInsets.only(bottom: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ListTile(
-            leading: const Icon(Icons.fingerprint, color: Color(0xFF004A99)),
-            title: const Text('Empreinte digitale'),
-            subtitle: const Text('Utiliser l\'empreinte digitale pour déverrouiller'),
-            trailing: Icon(
-              Icons.arrow_forward_ios,
-              color: fingerprintEnabled ? Colors.blue : Colors.grey,
+            leading: const Icon(Icons.pin, color: Color(0xFF004A99)),
+            title: const Text('PIN'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Switch(
+                  value: pinEnabled,
+                  onChanged: (bool value) {
+                    setState(() {
+                      pinEnabled = value;
+                    });
+                  },
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.arrow_forward_ios),
+              ],
             ),
             onTap: () {
-              setState(() {
-                fingerprintEnabled = !fingerprintEnabled;
-              });
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PinOptionsScreen()),
+              );
+            },
+          ),
+        ),
+        Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: ListTile(
+            leading: const Icon(Icons.fingerprint, color: Color(0xFF004A99)),
+            title: const Text('Empreinte Digitale'),
+            subtitle: const Text("Utiliser l'empreinte digitale pour déverrouiller"),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Switch(
+                  value: fingerprintEnabled,
+                  onChanged: (bool value) {
+                    setState(() {
+                      fingerprintEnabled = value;
+                    });
+                    if (value) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FingerprintOptionsScreen(),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.arrow_forward_ios),
+              ],
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FingerprintOptionsScreen(),
+                ),
+              );
             },
           ),
         ),
@@ -186,9 +209,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         Card(
           margin: const EdgeInsets.only(bottom: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Column(children: children),
         ),
       ],

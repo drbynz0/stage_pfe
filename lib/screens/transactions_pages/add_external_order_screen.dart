@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stage_pfe/models/factures.dart';
 import 'package:stage_pfe/models/supplier.dart';
 import '../../models/external_order.dart';
 import 'add_extern_article_screen.dart';
@@ -57,47 +58,67 @@ class AddExternalOrderScreenState extends State<AddExternalOrderScreen> {
     return returnTotalPrice() - returnPaidPrice();
   }
 
-  void _submitForm() {
-    double totalPrice = returnTotalPrice();
-    double paidPrice = returnPaidPrice();
-    double remainingPrice = returnRemainingPrice();
-    if (_formKey.currentState!.validate() && _items.isNotEmpty) {
-      final newOrder = ExternalOrder(
-        id: 'EXT-${DateTime.now().millisecondsSinceEpoch}',
-        supplierId: _supplierId,
-        supplierName: _supplierNameController.text,
-        date: _selectedDate,
-        paymentMethod: _paymentMethod,
-        totalPrice: totalPrice,
-        paidPrice: paidPrice,
-        remainingPrice: remainingPrice,
-        description: _descriptionController.text,
-        status: _status,
-        items: _items,
-      );
+ void _submitForm() {
+  double totalPrice = returnTotalPrice();
+  double paidPrice = returnPaidPrice();
+  double remainingPrice = returnRemainingPrice();
+  
+  if (_formKey.currentState!.validate() && _items.isNotEmpty) {
+    final newOrder = ExternalOrder(
+      id: 'EXT-${DateTime.now().millisecondsSinceEpoch}',
+      supplierId: _supplierId,
+      supplierName: _supplierNameController.text,
+      date: _selectedDate,
+      paymentMethod: _paymentMethod,
+      totalPrice: totalPrice,
+      paidPrice: paidPrice,
+      remainingPrice: remainingPrice,
+      description: _descriptionController.text,
+      status: _status,
+      items: _items,
+    );
 
-            // Vérification de l'état de la commande
-      if (_status == OrderStatus.completed) {
-        for (var item in _items) {
-          final productIndex = _availableProducts.indexWhere((product) => product.code == item.productId);
-          if (productIndex != -1) {
-            setState(() {
-              _availableProducts[productIndex].stock += item.quantity;
-            });
-          }
+    // Vérification de l'état de la commande
+    if (_status == OrderStatus.completed) {
+      for (var item in _items) {
+        final productIndex = _availableProducts.indexWhere((product) => product.code == item.productId);
+        if (productIndex != -1) {
+          setState(() {
+            _availableProducts[productIndex].stock += item.quantity;
+          });
         }
       }
-      widget.onOrderAdded(newOrder);
-      Navigator.of(context).pop();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez ajouter au moins un article'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      
+      // Ajouter la facture fournisseur si le statut est "Terminée"
+      _addFactureForOrder(newOrder);
     }
+    
+    widget.onOrderAdded(newOrder);
+    Navigator.of(context).pop();
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Veuillez ajouter au moins un article'),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
+}
+
+void _addFactureForOrder(ExternalOrder order) {
+  final newFacture = FactureFournisseur(
+    id: 'FACT-EXT-${DateTime.now().millisecondsSinceEpoch}',
+    orderId: order.id,
+    supplierId: order.supplierId,
+    supplierName: order.supplierName,
+    amount: order.totalPrice,
+    date: '${order.date.day}/${order.date.month}/${order.date.year}',
+    description: order.description ?? 'Facture pour commande fournisseur ${order.id}',
+    isPaid: order.paidPrice >= order.totalPrice, isInternal: false,
+  );
+  
+  FactureFournisseur.addExternalFacture(newFacture);
+}
 
   Widget _buildFournisseurAutocomplete() {
     return Autocomplete<Supplier>(

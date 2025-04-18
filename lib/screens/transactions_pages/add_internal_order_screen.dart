@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stage_pfe/models/factures.dart';
 import '../../models/internal_order.dart';
 import '../../models/product.dart';
 import '../../models/client.dart';
@@ -56,48 +57,67 @@ class AddInternalOrderScreenState extends State<AddInternalOrderScreen> {
   }
 
   void _submitForm() {
-    double totalPrice = returnTotalPrice();
-    double paidPrice = returnPaidPrice();
-    double remainingPrice = returnRemainingPrice();
+  double totalPrice = returnTotalPrice();
+  double paidPrice = returnPaidPrice();
+  double remainingPrice = returnRemainingPrice();
 
-    if (_formKey.currentState!.validate() && _items.isNotEmpty) {
-      final newOrder = InternalOrder(
-        id: 'CMD-${DateTime.now().millisecondsSinceEpoch}',
-        clientId: _clientId,
-        clientName: _clientNameController.text,
-        date: _selectedDate,
-        paymentMethod: _paymentMethod,
-        totalPrice: totalPrice,
-        paidPrice: paidPrice,
-        remainingPrice: remainingPrice,
-        description: _descriptionController.text,
-        status: _status,
-        items: _items,
-      );
+  if (_formKey.currentState!.validate() && _items.isNotEmpty) {
+    final newOrder = InternalOrder(
+      id: 'CMD-${DateTime.now().millisecondsSinceEpoch}',
+      clientId: _clientId,
+      clientName: _clientNameController.text,
+      date: _selectedDate,
+      paymentMethod: _paymentMethod,
+      totalPrice: totalPrice,
+      paidPrice: paidPrice,
+      remainingPrice: remainingPrice,
+      description: _descriptionController.text,
+      status: _status,
+      items: _items,
+    );
 
-      // Vérification de l'état de la commande
-      if (_status == OrderStatus.completed) {
-        for (var item in _items) {
-          final productIndex = _availableProducts.indexWhere((product) => product.code == item.productId);
-          if (productIndex != -1) {
-            setState(() {
-              _availableProducts[productIndex].stock -= item.quantity;
-            });
-          }
+    // Vérification de l'état de la commande
+    if (_status == OrderStatus.completed) {
+      for (var item in _items) {
+        final productIndex = _availableProducts.indexWhere((product) => product.code == item.productId);
+        if (productIndex != -1) {
+          setState(() {
+            _availableProducts[productIndex].stock -= item.quantity;
+          });
         }
       }
-
-      widget.onOrderAdded(newOrder);
-      Navigator.of(context).pop();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez ajouter au moins un article'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      
+      // Ajouter la facture si le statut est "Terminée"
+      _addFactureForOrder(newOrder);
     }
+
+    widget.onOrderAdded(newOrder);
+    Navigator.of(context).pop();
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Veuillez ajouter au moins un article'),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
+}
+
+void _addFactureForOrder(InternalOrder order) {
+  final newFacture = FactureClient(
+    id: 'FACT-${DateTime.now().millisecondsSinceEpoch}',
+    orderId: order.id,
+    clientId: order.clientId,
+    clientName: order.clientName,
+    amount: order.totalPrice,
+    date: '${order.date.day}/${order.date.month}/${order.date.year}',
+    description: order.description ?? 'Facture pour commande ${order.id}',
+    isPaid: order.paidPrice >= order.totalPrice, isInternal: true,
+  );
+  
+  // Ajouter la facture à votre liste de factures
+  FactureClient.addInternalFacture(newFacture);
+}
 
   Widget _buildClientAutocomplete() {
     return Autocomplete<Client>(

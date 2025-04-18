@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:pdf/pdf.dart';
+import 'package:printing/printing.dart';
+import 'package:stage_pfe/models/factures.dart';
 import '../../models/internal_order.dart';
 import '/models/client.dart';
 import '../client_pages/client_details_screen.dart';
-
+import '/services/pdf_service.dart';
 class DetailsInternalOrderScreen extends StatefulWidget {
   final InternalOrder order;
 
@@ -35,10 +38,15 @@ class DetailsInternalOrderScreenState extends State<DetailsInternalOrderScreen> 
         iconTheme: const IconThemeData(color: Colors.white),
         title: Text('Commande de ${order.clientName}', style: const TextStyle(color: Colors.white)),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.print),
-            onPressed: () => _printOrder(context),
-          ),
+         IconButton(
+  icon: const Icon(Icons.print),
+    onPressed: () async {
+            final pdfData = await PdfService.generateOrderDetails(order);
+            await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => pdfData);
+          },
+
+)
+
         ],
       ),
       body: SingleChildScrollView(
@@ -231,6 +239,7 @@ class DetailsInternalOrderScreenState extends State<DetailsInternalOrderScreen> 
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _buildAllPriceItem(
+              
               icon: Icons.attach_money,
               label: 'Prix total',
               value: '${order.totalPrice.toStringAsFixed(2)} DH',
@@ -300,85 +309,107 @@ class DetailsInternalOrderScreenState extends State<DetailsInternalOrderScreen> 
     }
   }
 
-  void _printOrder(BuildContext context) {
-    // Implémentez l'impression ici
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Impression de la commande...')),
-    );
-  }
-
   void _changeOrderStatus(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Modifier le statut'),
-        content: DropdownButtonFormField<OrderStatus>(
-          decoration: const InputDecoration(
-            labelText: 'Sélectionnez le statut',
-            border: OutlineInputBorder(),
-          ),
-          value: order.status,
-          items: OrderStatus.values.map((status) {
-            return DropdownMenuItem(
-              value: status,
-              child: Text(_getStatusText(status)),
-            );
-          }).toList(),
-          onChanged: (newStatus) {
-            if (newStatus != null) {
-              if (newStatus == OrderStatus.completed || newStatus == OrderStatus.cancelled) {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Confirmation'),
-                    content: Text(
-                      newStatus == OrderStatus.completed
-                          ? 'Êtes-vous sûr de vouloir marquer cette commande comme "Terminée"? Cette action est irréversible.'
-                          : 'Êtes-vous sûr de vouloir marquer cette commande comme "Annulée"? Cette action est irréversible.',
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Modifier le statut'),
+      content: DropdownButtonFormField<OrderStatus>(
+        decoration: const InputDecoration(
+          labelText: 'Sélectionnez le statut',
+          border: OutlineInputBorder(),
+        ),
+        value: order.status,
+        items: OrderStatus.values.map((status) {
+          return DropdownMenuItem(
+            value: status,
+            child: Text(_getStatusText(status)),
+          );
+        }).toList(),
+        onChanged: (newStatus) {
+          if (newStatus != null) {
+            if (newStatus == OrderStatus.completed || newStatus == OrderStatus.cancelled) {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Confirmation'),
+                  content: Text(
+                    newStatus == OrderStatus.completed
+                        ? 'Êtes-vous sûr de vouloir marquer cette commande comme "Terminée"? Cette action créera une facture.'
+                        : 'Êtes-vous sûr de vouloir marquer cette commande comme "Annulée"? Cette action est irréversible.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Annuler'),
                     ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context), // Fermer la boîte de dialogue
-                        child: const Text('Annuler'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            order.status = newStatus;
-                          });
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          order.status = newStatus;
+                        });
+                        
+                        // Ajouter la facture si le statut est "Terminée"
+                        if (newStatus == OrderStatus.completed) {
+                          _addFactureForOrder(order);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Statut mis à jour et facture créée'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Statut mis à jour en ${_getStatusText(newStatus)}'),
                               backgroundColor: Colors.green,
                             ),
                           );
-                          Navigator.pop(context);
-                          Navigator.pop(context, order); // Retourner la commande mise à jour
-                          },
-                        child: const Text('Confirmer'),
-                      ),
-                    ],
-                  ),
-                );
-              } else {
-                setState(() {
-                  order.status = newStatus;
-                });
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Statut mis à jour en ${_getStatusText(newStatus)}'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-                Navigator.pop(context); // Fermer la boîte de confirmation
-                Navigator.pop(context, order); // Retourner la commande mise à jour
-              }
+                        }
+                        
+                        Navigator.pop(context);
+                        Navigator.pop(context, order);
+                      },
+                      child: const Text('Confirmer'),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              setState(() {
+                order.status = newStatus;
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Statut mis à jour en ${_getStatusText(newStatus)}'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              Navigator.pop(context);
+              Navigator.pop(context, order);
             }
-          },
-        ),
+          }
+        },
       ),
-    );
-  }
+    ),
+  );
+}
+
+void _addFactureForOrder(InternalOrder order) {
+  final newFacture = FactureClient(
+    id: 'FACT-${DateTime.now().millisecondsSinceEpoch}',
+    orderId: order.id,
+    clientId: order.clientId,
+    clientName: order.clientName,
+    amount: order.totalPrice,
+    date: '${order.date.day}/${order.date.month}/${order.date.year}',
+    description: order.description ?? 'Facture pour commande ${order.id}',
+    isPaid: order.paidPrice >= order.totalPrice, isInternal: true,
+  );
+  
+  // Ajouter la facture à votre liste de factures
+  FactureClient.addInternalFacture(newFacture);
+}
 
   void _sendReceipt(BuildContext context) {
     // Implémentez l'envoi de facture

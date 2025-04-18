@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:stage_pfe/models/factures.dart';
 import 'package:stage_pfe/models/supplier.dart';
 import '../../models/external_order.dart';
 import '../fourns_pages/supplier_details_screen.dart';
+import '../../services/pdfexternel_service.dart';
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
+
 
 class DetailsExternalOrderScreen extends StatefulWidget {
   final ExternalOrder order;
@@ -14,7 +19,8 @@ class DetailsExternalOrderScreen extends StatefulWidget {
 
 class DetailsExternalOrderScreenState extends State<DetailsExternalOrderScreen> {
   late ExternalOrder order;
-  late final List<Supplier> _supplier = Supplier.listSuppliers;
+  late final List<Supplier> _suppliers = Supplier.listSuppliers;
+  late Supplier supplier = Supplier.empty();
 
   @override
   void initState() {
@@ -32,10 +38,14 @@ class DetailsExternalOrderScreenState extends State<DetailsExternalOrderScreen> 
         iconTheme: const IconThemeData(color: Colors.white),
         title: Text('Commande fournisseur #${order.id}', style: const TextStyle(color: Colors.white)),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.print),
-            onPressed: () => _printOrder(context),
-          ),
+         IconButton(
+  icon: const Icon(Icons.print),
+    onPressed: () async {
+            final pdfData = await PdfService.generateSupplierOrderDetails(order);
+            await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => pdfData);
+          },
+
+)
         ],
       ),
       body: SingleChildScrollView(
@@ -47,8 +57,8 @@ class DetailsExternalOrderScreenState extends State<DetailsExternalOrderScreen> 
             _buildSectionHeader('Informations Fournisseur'),
             InkWell(
               onTap: () {
-                // Naviguer vers la page des détails du client
-                final supplier = _supplier.firstWhere((c) => c.ice == order.supplierId, orElse: () => Supplier.empty());
+                // Naviguer vers la page des détails du fournisseur
+                supplier = _suppliers.firstWhere((c) => c.ice == order.supplierId, orElse: () => Supplier.empty());
                 if (supplier != Supplier.empty()) {
                   Navigator.push(
                     context,
@@ -58,14 +68,16 @@ class DetailsExternalOrderScreenState extends State<DetailsExternalOrderScreen> 
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Client introuvable')),
+                    const SnackBar(content: Text('Fournisseur introuvable')),
                   );
                 }
               },
 
               child: _buildInfoCard(
                 children: [
-                  _buildInfoRow('Fournisseur', order.supplierName),
+                  _buildInfoRow('ICE', order.supplierId),
+                  _buildInfoRow('Fournisseur', supplier.name),
+                  _buildInfoRow('Adresse', supplier.address),
                   _buildInfoRow('Date', _formatDate(order.date)),
                   _buildInfoRow('Statut', _getStatusText(order.status)),
                   _buildInfoRow('Moyen de paiement', _getPaymentMethodText(order.paymentMethod)),
@@ -298,83 +310,107 @@ class DetailsExternalOrderScreenState extends State<DetailsExternalOrderScreen> 
     }
   }
 
-  void _printOrder(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Impression du bon de commande...')),
-    );
-  }
+  
 
   void _changeOrderStatus(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Modifier le statut'),
-        content: DropdownButtonFormField<OrderStatus>(
-          decoration: const InputDecoration(
-            labelText: 'Sélectionnez le statut',
-            border: OutlineInputBorder(),
-          ),
-          value: order.status,
-          items: OrderStatus.values.map((status) {
-            return DropdownMenuItem(
-              value: status,
-              child: Text(_getStatusText(status)),
-            );
-          }).toList(),
-          onChanged: (newStatus) {
-            if (newStatus != null) {
-              if (newStatus == OrderStatus.completed || newStatus == OrderStatus.cancelled) {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Confirmation'),
-                    content: Text(
-                      newStatus == OrderStatus.completed
-                          ? 'Êtes-vous sûr de vouloir marquer cette commande comme "Terminée"?'
-                          : 'Êtes-vous sûr de vouloir annuler cette commande?',
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Modifier le statut'),
+      content: DropdownButtonFormField<OrderStatus>(
+        decoration: const InputDecoration(
+          labelText: 'Sélectionnez le statut',
+          border: OutlineInputBorder(),
+        ),
+        value: order.status,
+        items: OrderStatus.values.map((status) {
+          return DropdownMenuItem(
+            value: status,
+            child: Text(_getStatusText(status)),
+          );
+        }).toList(),
+        onChanged: (newStatus) {
+          if (newStatus != null) {
+            if (newStatus == OrderStatus.completed || newStatus == OrderStatus.cancelled) {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Confirmation'),
+                  content: Text(
+                    newStatus == OrderStatus.completed
+                        ? 'Êtes-vous sûr de vouloir marquer cette commande comme "Terminée"? Cette action créera une facture.'
+                        : 'Êtes-vous sûr de vouloir annuler cette commande?',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Annuler'),
                     ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Annuler'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            order.status = newStatus;
-                          });
-                          Navigator.pop(context);
-                          Navigator.pop(context);
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          order.status = newStatus;
+                        });
+                        
+                        // Ajouter la facture si le statut est "Terminée"
+                        if (newStatus == OrderStatus.completed) {
+                          _addFactureForOrder(order);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Statut mis à jour et facture créée'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Statut mis à jour en ${_getStatusText(newStatus)}'),
                               backgroundColor: Colors.green,
                             ),
                           );
-                        },
-                        child: const Text('Confirmer'),
-                      ),
-                    ],
-                  ),
-                );
-              } else {
-                setState(() {
-                  order.status = newStatus;
-                });
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Statut mis à jour en ${_getStatusText(newStatus)}'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              }
+                        }
+                        
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Confirmer'),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              setState(() {
+                order.status = newStatus;
+              });
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Statut mis à jour en ${_getStatusText(newStatus)}'),
+                  backgroundColor: Colors.green,
+                ),
+              );
             }
-          },
-        ),
+          }
+        },
       ),
-    );
-  }
+    ),
+  );
+}
+
+void _addFactureForOrder(ExternalOrder order) {
+  final newFacture = FactureFournisseur(
+    id: 'FACT-EXT-${DateTime.now().millisecondsSinceEpoch}',
+    orderId: order.id,
+    supplierId: order.supplierId,
+    supplierName: order.supplierName,
+    amount: order.totalPrice,
+    date: '${order.date.day}/${order.date.month}/${order.date.year}',
+    description: order.description ?? 'Facture pour commande fournisseur ${order.id}',
+    isPaid: order.paidPrice >= order.totalPrice, isInternal: false,
+  );
+  
+  FactureFournisseur.addExternalFacture(newFacture);
+}
 
   void _sendConfirmation(BuildContext context) {
     showDialog(

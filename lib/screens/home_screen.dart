@@ -4,8 +4,8 @@ import 'transactions_pages/transactions_screen.dart';
 import 'client_pages/client_management_screen.dart';
 import 'plus_pages/more_options_screen.dart';
 import 'settings_pages/settings_screen.dart';
-//soumya ssss
-//vvvv 
+import 'notification_pages/notification_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -16,6 +16,7 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   int _currentIndex = 2;
+  int _unreadNotificationsCount = 3; // Compteur de notifications non lues
   late final List<Widget> _pages;
 
   @override
@@ -123,8 +124,10 @@ class HomeScreenState extends State<HomeScreen> {
                 {"desc": "Ajout d'un nouveau client : John Doe", "icon": Icons.person_add},
                 {"desc": "Mise à jour du stock : +50 articles", "icon": Icons.inventory},
               ];
-              return _buildActivityTile(activities[index]["desc"] as String, 
-                                      activities[index]["icon"] as IconData);
+              return _buildActivityTile(
+                activities[index]["desc"] as String, 
+                activities[index]["icon"] as IconData,
+              );
             },
           ),
         ],
@@ -207,11 +210,47 @@ class HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications, color: Colors.white),
-            onPressed: () {
-              // Action pour les notifications
-            },
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications, color: Colors.white),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const NotificationScreen()),
+                  ).then((_) {
+                    // Quand on revient de la page de notifications, on peut mettre à jour le compteur
+                    setState(() {
+                      _unreadNotificationsCount = 0;
+                    });
+                  });
+                },
+              ),
+              if (_unreadNotificationsCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 12,
+                      minHeight: 12,
+                    ),
+                    child: Text(
+                      _unreadNotificationsCount.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ],
       ),
@@ -231,8 +270,6 @@ class HomeScreenState extends State<HomeScreen> {
                     width: 100,
                     height: 100,
                   ),
-      
-                
                 ],
               ),
             ),
@@ -244,6 +281,7 @@ class HomeScreenState extends State<HomeScreen> {
                 // Navigation vers le profil
               },
             ),
+           
             ListTile(
               leading: const Icon(Icons.settings, color: Color(0xFF003366)),
               title: const Text('Paramètres'),

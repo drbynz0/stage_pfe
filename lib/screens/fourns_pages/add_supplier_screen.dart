@@ -168,7 +168,7 @@ class AddSupplierScreenState extends State<AddSupplierScreen> {
                 itemBuilder: (BuildContext context, int index) {
                   final Product option = options.elementAt(index);
                   return ListTile(
-                    title: Text(option.category),
+                    title: Text(option.name),
                     onTap: () {
                       onSelected(option);
                     },

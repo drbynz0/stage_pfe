@@ -16,82 +16,87 @@ class FactureClient {
     required this.amount,
     required this.date,
     required this.description,
-    required this.isInternal,
+    required this.isInternal, required bool isPaid,
   });
-  
+
+  // Liste statique pour les factures internes prédéfinies
   static List<FactureClient> internalFactures = [
-      FactureClient(
-        id: 'INT001',
-        orderId: 'CMD001',
-        clientId: 'C001',
-        clientName: 'Client A',
-        amount: 1200.50,
-        date: '2025-04-10',
-        description: 'Facture pour la commande interne INT001',
-        isInternal: true,
-      ),
-      FactureClient(
-        id: 'INT002',
-        orderId: 'CMD002',
-        clientId: 'C002',
-        clientName: 'Client B',
-        amount: 850.00,
-        date: '2025-04-11',
-        description: 'Facture pour la commande interne INT002',
-        isInternal: true,
-      ),
-      FactureClient(
-        id: 'INT003',
-        orderId: 'CMD003',
-        clientId: 'C003',
-        clientName: 'Client C',
-        amount: 500.00,
-        date: '2025-04-12',
-        description: 'Facture pour la commande interne INT003',
-        isInternal: true,
-      ),
-      FactureClient(
-        id: 'INT004',
-        orderId: 'CMD004',
-        clientId: 'C004',
-        clientName: 'Client D',
-        amount: 2000.00,
-        date: '2025-04-13',
-        description: 'Facture pour la commande interne INT004',
-        isInternal: true,
-      ),
-      FactureClient(
-        id: 'INT005',
-        orderId: 'CMD005',
-        clientId: 'C005',
-        clientName: 'Client E',
-        amount: 1500.00,
-        date: '2025-04-14',
-        description: 'Facture pour la commande interne INT005',
-        isInternal: true,
-      ),
-      FactureClient(
-        id: 'INT006',
-        orderId: 'CMD006',
-        clientId: 'C006',
-        clientName: 'Client F',
-        amount: 300.00,
-        date: '2025-04-15',
-        description: 'Facture pour la commande interne INT006',
-        isInternal: true,
-      ),
-    ];
+    FactureClient(
+      id: 'INT001',
+      orderId: 'CMD001',
+      clientId: 'C001',
+      clientName: 'Client A',
+      amount: 1200.50,
+      date: '2025-04-10',
+      description: 'Facture pour la commande interne INT001',
+      isInternal: true, isPaid: false,
+    ),
+    FactureClient(
+      id: 'INT002',
+      orderId: 'CMD002',
+      clientId: 'C002',
+      clientName: 'Client B',
+      amount: 850.00,
+      date: '2025-04-11',
+      description: 'Facture pour la commande interne INT002',
+      isInternal: true, isPaid: false,
+    ),
+    FactureClient(
+      id: 'INT003',
+      orderId: 'CMD003',
+      clientId: 'C003',
+      clientName: 'Client C',
+      amount: 500.00,
+      date: '2025-04-12',
+      description: 'Facture pour la commande interne INT003',
+      isInternal: true,
+      isPaid: false,
+    ),
+    FactureClient(
+      id: 'INT004',
+      orderId: 'CMD004',
+      clientId: 'C004',
+      clientName: 'Client D',
+      amount: 2000.00,
+      date: '2025-04-13',
+      description: 'Facture pour la commande interne INT004',
+      isInternal: true, isPaid: false,
+    ),
+    FactureClient(
+      id: 'INT005',
+      orderId: 'CMD005',
+      clientId: 'C005',
+      clientName: 'Client E',
+      amount: 1500.00,
+      date: '2025-04-14',
+      description: 'Facture pour la commande interne INT005',
+      isInternal: true, isPaid: false,
+    ),
+    FactureClient(
+      id: 'INT006',
+      orderId: 'CMD006',
+      clientId: 'C006',
+      clientName: 'Client F',
+      amount: 300.00,
+      date: '2025-04-15',
+      description: 'Facture pour la commande interne INT006',
+      isInternal: true,
+    isPaid: false,
+    ),
+  ];
 
+  // Nouvelle liste privée modifiable dynamiquement
+  static final List<FactureClient> _internalFactures = [];
 
-
-
-  // Exemple de données factices pour les commandes internes
+  // Méthode pour récupérer toutes les factures internes dynamiques
   static List<FactureClient> getInternalFactures() {
-    return internalFactures;
+    return _internalFactures;
   }
 
-  // Exemple de données factices pour les commandes externes
-
+  // Méthode pour ajouter une nouvelle facture interne dynamiquement
+  static void addInternalFacture(FactureClient facture) {
+    _internalFactures.add(facture);
+  }
 }
 
 class FactureFournisseur {
@@ -110,10 +115,10 @@ class FactureFournisseur {
     required this.amount,
     required this.date,
     required this.description,
-    required this.isInternal,
+    required this.isInternal, required bool isPaid, required String orderId,
   });
 
-    static List<FactureFournisseur> externalFactures = [
+  static List<FactureFournisseur> externalFactures = [
     FactureFournisseur(
       id: 'EXT001',
       supplierId: 'F001',
@@ -121,7 +126,7 @@ class FactureFournisseur {
       amount: 3000.75,
       date: '2025-04-09',
       description: 'Facture pour la commande externe EXT001',
-      isInternal: false,
+      isInternal: false, isPaid: false, orderId: 'CMD-001',
     ),
     FactureFournisseur(
       id: 'EXT002',
@@ -130,7 +135,7 @@ class FactureFournisseur {
       amount: 4500.00,
       date: '2025-04-10',
       description: 'Facture pour la commande externe EXT002',
-      isInternal: false,
+      isInternal: false, isPaid: false, orderId: 'CMD-001',
     ),
     FactureFournisseur(
       id: 'EXT003',
@@ -139,7 +144,7 @@ class FactureFournisseur {
       amount: 1200.50,
       date: '2025-04-11',
       description: 'Facture pour la commande externe EXT003',
-      isInternal: false,
+      isInternal: false, isPaid: false, orderId: 'CMD-001',
     ),
     FactureFournisseur(
       id: 'EXT004',
@@ -148,7 +153,7 @@ class FactureFournisseur {
       amount: 850.00,
       date: '2025-04-12',
       description: 'Facture pour la commande externe EXT004',
-      isInternal: false,
+      isInternal: false, isPaid: false, orderId: 'CMD-001',
     ),
     FactureFournisseur(
       id: 'EXT005',
@@ -157,7 +162,7 @@ class FactureFournisseur {
       amount: 500.00,
       date: '2025-04-13',
       description: 'Facture pour la commande externe EXT005',
-      isInternal: false,
+      isInternal: false, isPaid: false, orderId: 'CMD-001',
     ),
     FactureFournisseur(
       id: 'EXT006',
@@ -166,7 +171,7 @@ class FactureFournisseur {
       amount: 2000.00,
       date: '2025-04-14',
       description: 'Facture pour la commande externe EXT006',
-      isInternal: false,
+      isInternal: false, isPaid: false, orderId: 'CMD-001',
     ),
     FactureFournisseur(
       id: 'EXT007',
@@ -175,7 +180,7 @@ class FactureFournisseur {
       amount: 1500.00,
       date: '2025-04-15',
       description: 'Facture pour la commande externe EXT007',
-      isInternal: false,
+      isInternal: false, isPaid: false, orderId: 'CMD-001',
     ),
     FactureFournisseur(
       id: 'EXT008',
@@ -184,7 +189,7 @@ class FactureFournisseur {
       amount: 300.00,
       date: '2025-04-16',
       description: 'Facture pour la commande externe EXT008',
-      isInternal: false,
+      isInternal: false, isPaid:false, orderId: 'CMD-001',
     ),
     FactureFournisseur(
       id: 'EXT009',
@@ -193,7 +198,7 @@ class FactureFournisseur {
       amount: 1000.00,
       date: '2025-04-17',
       description: 'Facture pour la commande externe EXT009',
-      isInternal: false,
+      isInternal: false, isPaid: false, orderId: 'CMD-001',
     ),
     FactureFournisseur(
       id: 'EXT010',
@@ -202,11 +207,16 @@ class FactureFournisseur {
       amount: 2500.00,
       date: '2025-04-18',
       description: 'Facture pour la commande externe EXT010',
-      isInternal: false,
+      isInternal: false, isPaid: false, orderId: 'CMD-001',
     ),
   ];
+  // Nouvelle liste privée modifiable dynamiquement   
+   static final List<FactureFournisseur> _externalFactures = [];
+  static List<FactureFournisseur> getExternalFactures() {
+    return _externalFactures;
+  }
 
-    static List<FactureFournisseur> getExternalFactures() {
-    return externalFactures;
+  static void addExternalFacture(FactureFournisseur newFacture) {
+    _externalFactures.add(newFacture);
   }
 }
