@@ -4,8 +4,11 @@ import 'transactions_pages/transactions_screen.dart';
 import 'client_pages/client_management_screen.dart';
 import 'plus_pages/more_options_screen.dart';
 import 'settings_pages/settings_screen.dart';
-//soumya ssss
-//vvvv 
+import '../models/internal_order.dart';
+import '../widgets/stats_vente.dart';
+import 'package:provider/provider.dart';
+import '../services/app_data_service.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -17,6 +20,7 @@ class HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   int _currentIndex = 2;
   late final List<Widget> _pages;
+  final List<InternalOrder> _internalOrders = InternalOrder.getInternalOrderList();
 
   @override
   void initState() {
@@ -30,105 +34,120 @@ class HomeScreenState extends State<HomeScreen> {
     ];
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
+
   Widget _buildHomePage() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Statistiques",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF003366),
-            ),
-          ),
-          const SizedBox(height: 16),
-          GridView.count(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 1.2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
+    //final int totalExternalOrders = _externalOrders.length;
+    //final int totalSuppliers = _suppliers.length;
+    //final int totalClients = _clients.length;
+    //final double chiffreAffairePaid = _externalOrders.fold(0, (sum, order) => sum + order.paidPrice);
+
+    return Consumer<AppData>(
+      builder: (context, appData, child) {
+        final int totalExternalOrders = appData.externalOrders.length;
+        final int totalSuppliers = appData.suppliers.length;
+        final int totalClients = appData.clients.length;
+        final double chiffreAffairePaid = appData.externalOrders.fold(
+          0,
+          (sum, order) => sum + order.paidPrice
+        );
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildDashboardCard(
-                icon: Icons.show_chart,
-                label: "Chiffre d'affaire",
-                value: "100 000",
-                valueColor: Colors.green,
+              const Text(
+                "Statistiques",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF003366),
+                ),
               ),
-              _buildDashboardCard(
-                icon: Icons.attach_money,
-                label: "Achat",
-                value: "300 000",
-                valueColor: Colors.green,
+              const SizedBox(height: 16),
+              GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 1.2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  _buildDashboardCard(
+                    icon: Icons.show_chart,
+                    label: "Chiffre d'affaire",
+                    value: chiffreAffairePaid.toStringAsFixed(2),
+                    valueColor: Colors.green,
+                  ),
+                  _buildDashboardCard(
+                    icon: Icons.attach_money,
+                    label: "Achat",
+                    value: totalExternalOrders.toString(),
+                    valueColor: Colors.green,
+                  ),
+                  _buildDashboardCard(
+                    icon: Icons.inventory,
+                    label: "Fournisseurs",
+                    value: totalSuppliers.toString(),
+                    valueColor: Colors.red,
+                  ),
+                  _buildDashboardCard(
+                    icon: Icons.group,
+                    label: "Clients",
+                    value: totalClients.toString(),
+                    valueColor: Colors.red,
+                  ),
+                ],
               ),
-              _buildDashboardCard(
-                icon: Icons.inventory,
-                label: "Fournisseurs",
-                value: "10",
-                valueColor: Colors.red,
+              const SizedBox(height: 32),
+              const Text(
+                "Graphiques",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF003366),
+                ),
               ),
-              _buildDashboardCard(
-                icon: Icons.group,
-                label: "Clients",
-                value: "20",
-                valueColor: Colors.red,
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 300,
+                child: StatsVente(
+                  internalOrders: _internalOrders,
+                ),
+              ),
+              const SizedBox(height: 32),
+              const Text(
+                "Activités récentes",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF003366),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: 3,
+                itemBuilder: (context, index) {
+                  final activities = [
+                    {"desc": "Nouvelle commande de 10 000 €", "icon": Icons.shopping_cart},
+                    {"desc": "Ajout d'un nouveau client : John Doe", "icon": Icons.person_add},
+                    {"desc": "Mise à jour du stock : +50 articles", "icon": Icons.inventory},
+                  ];
+                  return _buildActivityTile(
+                    activities[index]["desc"] as String, 
+                    activities[index]["icon"] as IconData,
+                  );
+                },
               ),
             ],
           ),
-          const SizedBox(height: 32),
-          const Text(
-            "Graphiques",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF003366),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: Colors.blue.shade50,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Center(
-              child: Text(
-                "Graphique des ventes (à intégrer avec un package comme charts_flutter)",
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.blue.shade900),
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-          const Text(
-            "Activités récentes",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF003366),
-            ),
-          ),
-          const SizedBox(height: 16),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: 3,
-            itemBuilder: (context, index) {
-              final activities = [
-                {"desc": "Nouvelle commande de 10 000 €", "icon": Icons.shopping_cart},
-                {"desc": "Ajout d'un nouveau client : John Doe", "icon": Icons.person_add},
-                {"desc": "Mise à jour du stock : +50 articles", "icon": Icons.inventory},
-              ];
-              return _buildActivityTile(activities[index]["desc"] as String, 
-                                      activities[index]["icon"] as IconData);
-            },
-          ),
-        ],
-      ),
+        );
+      }
     );
   }
 
@@ -207,11 +226,13 @@ class HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications, color: Colors.white),
-            onPressed: () {
-              // Action pour les notifications
-            },
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications, color: Colors.white),
+                onPressed: () =>{},
+              ),
+            ],
           ),
         ],
       ),
@@ -231,8 +252,6 @@ class HomeScreenState extends State<HomeScreen> {
                     width: 100,
                     height: 100,
                   ),
-      
-                
                 ],
               ),
             ),
@@ -244,6 +263,7 @@ class HomeScreenState extends State<HomeScreen> {
                 // Navigation vers le profil
               },
             ),
+           
             ListTile(
               leading: const Icon(Icons.settings, color: Color(0xFF003366)),
               title: const Text('Paramètres'),

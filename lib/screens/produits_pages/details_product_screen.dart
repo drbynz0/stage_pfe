@@ -23,7 +23,7 @@ class DetailsProductScreenState extends State<DetailsProductScreen> {
     product = widget.product;
   }
 
-  @override
+@override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -106,6 +106,7 @@ class DetailsProductScreenState extends State<DetailsProductScreen> {
       ),
     );
   }
+
 
     Widget _buildImageCarousel() {
     return Column(
