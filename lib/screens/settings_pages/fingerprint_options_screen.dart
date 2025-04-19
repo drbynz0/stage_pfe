@@ -36,16 +36,19 @@ class _FingerprintSetupScreenState extends State<FingerprintSetupScreen> {
       );
       if (authenticated) {
         // Authentification réussie
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Authentification réussie')),
         );
       } else {
         // Échec de l'authentification
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Échec de l\'authentification')),
         );
       }
     } catch (e) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur: $e')),
       );

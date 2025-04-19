@@ -102,7 +102,7 @@ class _DetailsDiscountScreenState extends State<DetailsDiscountScreen> {
             enlargeCenterPage: true,
             viewportFraction: 1,
           ),
-          items: hasImages 
+          items: hasImages
               ? images.map((imageUrl) => _buildImageItem(imageUrl)).toList()
               : [_buildPlaceholderItem()],
         ),

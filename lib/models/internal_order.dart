@@ -56,6 +56,14 @@ class InternalOrder {
     return internalOrderList;
   }
 
+  static void addInternalOrder(InternalOrder order) {
+    internalOrderList.insert(0, order);
+  }
+
+  static void removeInternalOrder(InternalOrder order) {
+    internalOrderList.remove(order);
+  }
+
     static InternalOrder empty() {
     return InternalOrder(
       id: '',

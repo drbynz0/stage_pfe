@@ -32,7 +32,7 @@ class ExternalOrder {
       date: DateTime.now().subtract(Duration(days: 2)),
       paymentMethod: PaymentMethod.card,
       totalPrice: 300.00,
-      paidPrice: 300.00,
+      paidPrice: 500.00,
       remainingPrice: 0.00,
       description: 'Commande de matériel informatique',
       status: OrderStatus.completed,
@@ -54,8 +54,16 @@ class ExternalOrder {
     required this.items,
   });
 
-    static List<ExternalOrder> getExternalOrderList() {
+  static List<ExternalOrder> getExternalOrderList() {
     return externalOrderList;
+  }
+
+  static void addExternalOrder(ExternalOrder order) {
+    externalOrderList.insert(0, order);
+  }
+
+  static void removeExternalOrder(ExternalOrder order) {
+    externalOrderList.remove(order);
   }
 }
 

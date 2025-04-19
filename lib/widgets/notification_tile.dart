@@ -20,6 +20,7 @@ class NotificationTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: notification.read 
               ? Colors.grey.shade300 
+              // ignore: deprecated_member_use
               : const Color(0xFF003366).withOpacity(0.2),
           shape: BoxShape.circle,
         ),

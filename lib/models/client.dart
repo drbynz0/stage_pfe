@@ -82,6 +82,15 @@ class Client {
     return _clients.firstWhere((client) => client.id == id, orElse: () => Client.empty());
   }
 
+  static void addClient(Client client) {
+    _clients.insert(0, client);
+  }
+
+  static void removeClient(client) {
+    _clients.remove(client);
+  }
+
+
     static Client empty() {
     return Client(
       id: '0',
