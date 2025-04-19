@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import '/models/factures.dart';
 import '/models/internal_order.dart';
+import '/models/client.dart';
 
-class DetailsFactureInternalScreen extends StatelessWidget {
+class ModernFactureDetailScreen extends StatelessWidget {
   final FactureClient facture;
-  final List<InternalOrder> internalOrders; // Liste des commandes internes
+  final List<InternalOrder> internalOrders;
 
-  const DetailsFactureInternalScreen({
+  const ModernFactureDetailScreen({
     super.key,
     required this.facture,
     required this.internalOrders,
@@ -14,35 +15,44 @@ class DetailsFactureInternalScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final order = internalOrders.firstWhere(
+      (o) => o.id == facture.orderId,
+      orElse: () => InternalOrder.empty(),
+    );
+
+    final double totalHT = facture.amount;
+    final double tva = totalHT * 0.20;
+    final double totalTTC = totalHT + tva;
+    final double paidAmount = order.paidPrice;
+    final double remainingAmount = order.remainingPrice;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Détails Facture Client'),
+        title: const Text('Détail Facture', style: TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xFF003366),
+        centerTitle: true,
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.print),
-            onPressed: () {
-              // Fonctionnalité d'impression
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Impression en cours...')),
-              );
-            },
+            icon: const Icon(Icons.print, color: Colors.white),
+            onPressed: () => _printFacture(context),
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(),
-            const SizedBox(height: 30),
-            _buildClientInfo(),
-            const SizedBox(height: 30),
-            _buildProductsTable(),
-            const SizedBox(height: 30),
-            _buildTotalSection(),
-            const SizedBox(height: 30),
+            const SizedBox(height: 24),
+            _buildClientCard(),
+            const SizedBox(height: 24),
+            _buildProductList(order),
+            const SizedBox(height: 24),
+            _buildAmountSection(totalHT, tva, totalTTC),
+            const SizedBox(height: 24),
+            _buildPaymentStatus(paidAmount, remainingAmount),
+            const SizedBox(height: 24),
             _buildFooter(),
           ],
         ),
@@ -51,74 +61,22 @@ class DetailsFactureInternalScreen extends StatelessWidget {
   }
 
   Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Facture # ${facture.id}', 
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            Text('Date: ${facture.date}'),
-          ],
-        ),
-        Image.asset('assets/logo.png', height: 60), // Remplacez par votre logo
-      ],
-    );
-  }
-
-  Widget _buildClientInfo() {
     return Card(
-      elevation: 3,
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(15.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('INFORMATIONS CLIENT', 
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const Divider(),
-            Text('Nom: ${facture.clientName}'),
-            Text('Identifiant: ${facture.clientId}'),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProductsTable() {
-    // Récupérer la commande interne correspondante
-    final InternalOrder order = internalOrders.firstWhere(
-      (o) => o.id == facture.orderId,
-      orElse: () => InternalOrder.empty(),
-    );
-
-    return Card(
-      elevation: 3,
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          children: [
-            const Text('ARTICLES COMMANDÉS', 
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const Divider(),
-            DataTable(
-              columns: const [
-                DataColumn(label: Text('Référence')),
-                DataColumn(label: Text('Désignation')),
-                DataColumn(label: Text('Qty')),
-                DataColumn(label: Text('Prix Unitaire')),
-                DataColumn(label: Text('Total')),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('FACTURE #${facture.id}',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text('Date: ${facture.date}', style: const TextStyle(color: Colors.grey)),
               ],
-              rows: order.items.map((item) {
-                return DataRow(cells: [
-                  DataCell(Text(item.productId)),
-                  DataCell(Text(item.productName)),
-                  DataCell(Text(item.quantity.toString())),
-                  DataCell(Text('${item.unitPrice.toStringAsFixed(2)} DH')),
-                  DataCell(Text('${(item.quantity * item.unitPrice).toStringAsFixed(2)} DH')),
-                ]);
-              }).toList(),
             ),
           ],
         ),
@@ -126,45 +84,195 @@ class DetailsFactureInternalScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTotalSection() {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Card(
-        elevation: 3,
-        child: Padding(
-          padding: const EdgeInsets.all(15.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text('Sous Total: ${facture.amount.toStringAsFixed(2)} DH'),
-              const Divider(),
-              Text('TOTAL TTC: ${facture.amount.toStringAsFixed(2)} DH', 
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            ],
-          ),
+  Widget _buildClientCard() {
+        final order = internalOrders.firstWhere(
+      (o) => o.id == facture.orderId,
+      orElse: () => InternalOrder.empty(),
+    );
+
+    final client = Client.getClientById(order.clientId);
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('CLIENT',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF003366))),
+            const Divider(),
+            const SizedBox(height: 8),
+            _buildInfoRow('Nom', facture.clientName),
+            _buildInfoRow('ID Client', facture.clientId),
+            _buildInfoRow('ICE', client.ice ?? 'N/A'),
+            if (facture.clientAddress != null)
+              _buildInfoRow('Adresse', facture.clientAddress!),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildFooter() {
-    return const Card(
-      elevation: 3,
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Text('$label : ', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Expanded(child: Text(value)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductList(InternalOrder order) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: EdgeInsets.all(15.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('CONDITIONS DE PAIEMENT', 
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            Divider(),
-            Text('Paiement à réception de facture'),
-            Text('Délai de paiement: 30 jours'),
-            SizedBox(height: 10),
-            Text('Merci pour votre confiance!'),
+            const Text('ARTICLES',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF003366))),
+            const Divider(),
+            const SizedBox(height: 8),
+            ...order.items.map((item) => _buildProductItem(item)).toList(),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildProductItem(OrderItem item) {
+    final total = item.unitPrice * item.quantity;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item.productName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text('Réf: ${item.productId}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Text('${item.quantity} x ${item.unitPrice.toStringAsFixed(2)}',
+                textAlign: TextAlign.center),
+          ),
+          Expanded(
+            child: Text('${total.toStringAsFixed(2)} DH',
+                textAlign: TextAlign.right,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAmountSection(double totalHT, double tva, double totalTTC) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            _buildAmountRow('Total HT:', totalHT),
+            _buildAmountRow('TVA (20%):', tva),
+            const Divider(thickness: 1.5),
+            _buildAmountRow('TOTAL TTC:', totalTTC, isTotal: true),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPaymentStatus(double paidAmount, double remainingAmount) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            const Text('STATUT DE PAIEMENT',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF003366))),
+            const Divider(),
+            const SizedBox(height: 8),
+            _buildAmountRow('Montant payé:', paidAmount),
+            _buildAmountRow('Reste à payer:', remainingAmount),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: facture.isPaid ? Colors.green[50] : Colors.orange[50],
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                facture.isPaid ? 'FACTURE PAYÉE' : 'EN ATTENTE DE PAIEMENT',
+                style: TextStyle(
+                  color: facture.isPaid ? Colors.green : Colors.orange,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAmountRow(String label, double amount, {bool isTotal = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label,
+              style: TextStyle(
+                fontSize: isTotal ? 16 : 14,
+                fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+              )),
+          Text('${amount.toStringAsFixed(2)} DH',
+              style: TextStyle(
+                fontSize: isTotal ? 18 : 14,
+                fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+                color: isTotal ? const Color(0xFF003366) : Colors.black,
+              )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooter() {
+    return Column(
+      children: [
+        const Text('Merci pour votre confiance!', style: TextStyle(fontStyle: FontStyle.italic)),
+        const SizedBox(height: 16),
+        Text('Date d\'échéance: ${_calculateDueDate(facture.date)}',
+            style: const TextStyle(color: Colors.grey)),
+      ],
+    );
+  }
+
+  String _calculateDueDate(String invoiceDate) {
+    // Implémenter la logique de calcul réel si nécessaire
+    return '30 jours après réception';
+  }
+
+  void _printFacture(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Impression en cours...')),
     );
   }
 }

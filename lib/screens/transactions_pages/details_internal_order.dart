@@ -17,7 +17,7 @@ class DetailsInternalOrderScreen extends StatefulWidget {
 
 class DetailsInternalOrderScreenState extends State<DetailsInternalOrderScreen> {
   late InternalOrder order;
-  final List<Client> _clients = Client.getClients();
+  String _clientICE = 'N/A';
 
 
   @override
@@ -59,7 +59,8 @@ class DetailsInternalOrderScreenState extends State<DetailsInternalOrderScreen> 
             InkWell(
               onTap: () {
                 // Naviguer vers la page des détails du client
-                final client = _clients.firstWhere((c) => c.id == order.clientId, orElse: () => Client.empty());
+                final client = Client.getClientById(order.clientId);
+                _clientICE = client.ice ?? 'N/A';
                 if (client != Client.empty()) {
                   Navigator.push(
                     context,
@@ -76,6 +77,7 @@ class DetailsInternalOrderScreenState extends State<DetailsInternalOrderScreen> 
               child: _buildInfoCard(
                 children: [
                   _buildInfoRow('Nom', order.clientName),
+                  _buildInfoRow('ICE', _clientICE),
                   _buildInfoRow('Date', _formatDate(order.date)),
                   _buildInfoRow('Statut', _getStatusText(order.status)),
                   _buildInfoRow('Moyen de paiement', _getPaymentMethodText(order.paymentMethod)),
@@ -99,9 +101,9 @@ class DetailsInternalOrderScreenState extends State<DetailsInternalOrderScreen> 
             const SizedBox(height: 24),
 
             // Boutons d'action
-            if (order.status == OrderStatus.pending || order.status == OrderStatus.processing)
               Row(
                 children: [
+                  if (order.status != OrderStatus.completed)
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () => _changeOrderStatus(context),
@@ -295,6 +297,7 @@ class DetailsInternalOrderScreenState extends State<DetailsInternalOrderScreen> 
     switch (status) {
       case OrderStatus.pending: return 'En attente';
       case OrderStatus.processing: return 'En traitement';
+      case OrderStatus.toPay: return 'À payer';
       case OrderStatus.completed: return 'Terminée';
       case OrderStatus.cancelled: return 'Annulée';
     }
@@ -350,7 +353,7 @@ class DetailsInternalOrderScreenState extends State<DetailsInternalOrderScreen> 
                         });
                         
                         // Ajouter la facture si le statut est "Terminée"
-                        if (newStatus == OrderStatus.completed) {
+                        if (newStatus == OrderStatus.completed || newStatus == OrderStatus.toPay) {
                           _addFactureForOrder(order);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(

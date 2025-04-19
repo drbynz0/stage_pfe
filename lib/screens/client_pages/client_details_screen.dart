@@ -58,6 +58,8 @@ class ClientDetailsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    _buildDetailRow('ICE', client.ice ?? 'N/A'),
+                    const SizedBox(height: 8),
                     _buildDetailRow('Nom', client.name),
                     const SizedBox(height: 8),
                     _buildDetailRow('Email', client.email),
@@ -227,6 +229,8 @@ class ClientDetailsScreen extends StatelessWidget {
         return 'En attente';
       case OrderStatus.processing:
         return 'En traitement';
+      case OrderStatus.toPay:
+        return 'À payer';
       case OrderStatus.completed:
         return 'Terminée';
       case OrderStatus.cancelled:

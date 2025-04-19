@@ -13,6 +13,7 @@ class AddClientScreen extends StatefulWidget {
 class _AddClientScreenState extends State<AddClientScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _iceController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
@@ -22,6 +23,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
     if (_formKey.currentState!.validate()) {
       final newClient = Client(
         id: DateTime.now().toString(),
+        ice: _iceController.text,
         name: _nameController.text,
         email: _emailController.text,
         phone: _phoneController.text,
@@ -91,6 +93,14 @@ class _AddClientScreenState extends State<AddClientScreen> {
                         if (value == null || value.isEmpty) {
                           return 'Ce champ est requis';
                         }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildFormField(
+                      hintText: 'ICE (Identifiant Commun de l\'Entreprise)',
+                      controller: _iceController,
+                      validator: (value) {
                         return null;
                       },
                     ),
