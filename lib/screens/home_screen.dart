@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:stage_pfe/models/sale_record.dart';
 import 'produits_pages/product_managment_screen.dart';
 import 'transactions_pages/transactions_screen.dart';
 import 'client_pages/client_management_screen.dart';
 import 'plus_pages/more_options_screen.dart';
 import 'settings_pages/settings_screen.dart';
 import '../models/internal_order.dart';
-import '../widgets/stats_vente.dart';
+import '/models/external_order.dart';
+import '../widgets/order_stats_charts.dart';
 import 'package:provider/provider.dart';
 import '../services/app_data_service.dart';
 import 'notification_pages/notification_screen.dart';
@@ -22,7 +24,9 @@ class HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   int _currentIndex = 2;
   late final List<Widget> _pages;
-  final List<InternalOrder> _internalOrders = InternalOrder.getInternalOrderList();
+  final List<InternalOrder> internalOrders = InternalOrder.getInternalOrderList();
+  final List<ExternalOrder> externalOrders = ExternalOrder.getExternalOrderList();
+  late List<SaleRecord> _allRecords;
    int _unreadNotificationsCount = 3;
 
   @override
@@ -35,6 +39,10 @@ class HomeScreenState extends State<HomeScreen> {
       const ProductManagementScreen(),
       const MoreOptionsScreen(),
     ];
+      _allRecords = [
+      ...internalOrders.map((o) => InternalOrderRecord(o)),
+      ...externalOrders.map((o) => ExternalOrderRecord(o)),
+    ];
   }
 
   @override
@@ -43,10 +51,6 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHomePage() {
-    //final int totalExternalOrders = _externalOrders.length;
-    //final int totalSuppliers = _suppliers.length;
-    //final int totalClients = _clients.length;
-    //final double chiffreAffairePaid = _externalOrders.fold(0, (sum, order) => sum + order.paidPrice);
 
     return Consumer<AppData>(
       builder: (context, appData, child) {
@@ -117,9 +121,7 @@ class HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 16),
               SizedBox(
                 height: 300,
-                child: StatsVente(
-                  internalOrders: _internalOrders,
-                ),
+                child: MonthlySalesChart(records: _allRecords,),
               ),
               const SizedBox(height: 32),
               const Text(

@@ -3,7 +3,7 @@ import '/models/client.dart';
 
 class DeleteClientScreen extends StatelessWidget {
   final Client client;
-  final Function(String) onDeleteClient;
+  final Function() onDeleteClient;
 
   const DeleteClientScreen({super.key, required this.client, required this.onDeleteClient});
 
@@ -19,7 +19,7 @@ class DeleteClientScreen extends StatelessWidget {
         ),
         ElevatedButton(
           onPressed: () {
-            onDeleteClient(client.id);
+            onDeleteClient();
             Navigator.pop(context);
           },
           style: ElevatedButton.styleFrom(backgroundColor: Colors.red),

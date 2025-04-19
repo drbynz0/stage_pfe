@@ -271,7 +271,7 @@ class ProductManagementScreenState extends State<ProductManagementScreen> {
                               ),
                               IconButton(
                                 icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed:  () => _showDeleteDialog(index),
+                                onPressed:  () => _showDeleteDialog(product),
                               ),
                             ],
                           ),
@@ -403,27 +403,27 @@ class ProductManagementScreenState extends State<ProductManagementScreen> {
       builder: (context) => AddProductScreen(
         onProductAdded: (newProduct) {
           setState(() {
-            products.insert(0, newProduct);
+            Product.addProduct(newProduct);
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Produit Ajouté avec succès'), duration: const Duration(seconds: 3), backgroundColor: Colors.green,),
-          );        
+            SnackBar(content: Text('${newProduct.name} Ajouté avec succès'), duration: const Duration(seconds: 3), backgroundColor: Colors.green,),
+          );
         },
       ),
     );
   }
 
-  void _showDeleteDialog(int index) {
+  void _showDeleteDialog(Product produit) {
     showDialog(
       context: context,
       builder: (context) => DeleteProductScreen(
-        product: products[index],
+        product: produit,
         onDeleteConfirmed: () {
           setState(() {
-            products.removeAt(index);
+            Product.removeProduct(produit);
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Produit supprimé avec succès'), duration: const Duration(seconds: 3), backgroundColor: Colors.red,),
+            SnackBar(content: Text('${produit.name} supprimé avec succès'), duration: const Duration(seconds: 3), backgroundColor: Colors.red,),
           );
         },
       ),

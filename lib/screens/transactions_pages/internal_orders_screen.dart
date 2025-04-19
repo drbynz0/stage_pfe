@@ -277,7 +277,7 @@ class InternalOrdersScreenState extends State<InternalOrdersScreen> {
       builder: (context) => AddInternalOrderScreen(
         onOrderAdded: (newOrder) {
           setState(() {
-            _orders.insert(0, newOrder);
+            InternalOrder.addInternalOrder(newOrder);
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -297,7 +297,7 @@ class InternalOrdersScreenState extends State<InternalOrdersScreen> {
         orderId: order.id,
         onConfirm: () {
           setState(() {
-            _orders.removeWhere((o) => o.id == order.id);
+            InternalOrder.removeInternalOrder(order);
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

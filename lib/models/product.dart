@@ -128,6 +128,14 @@ class Product {
   static List<Product> getProducts() {
     return productList;
   }
+
+  static void addProduct(Product newProduct) {
+    productList.insert(0, newProduct);
+  }
+
+  static void removeProduct(Product product) {
+    productList.remove(product);
+  }
   
   static Product getProductById(String id) {
     return productList.firstWhere((element) => element.code == id, orElse: () => Product

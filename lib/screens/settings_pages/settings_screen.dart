@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:local_auth/local_auth.dart';
-import 'package:stage_pfe/screens/settings_pages/Fingerprint_options_screen';
+import 'package:stage_pfe/screens/settings_pages/fingerprint_options_screen.dart';
 import 'change_password_screen.dart';
 import 'pin_options_screen.dart';
 
@@ -16,7 +15,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool fingerprintEnabled = false;
   bool notificationsEnabled = true; // <== Pour gérer les notifications
 
-  final LocalAuthentication _localAuth = LocalAuthentication();
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +163,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const FingerprintOptionsScreen(),
+                          builder: (context) => const FingerprintSetupScreen(),
                         ),
                       );
                     }
@@ -179,7 +177,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const FingerprintOptionsScreen(),
+                  builder: (context) => const FingerprintSetupScreen(),
                 ),
               );
             },

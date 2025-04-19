@@ -55,6 +55,7 @@ class PinOptionsScreen extends StatelessWidget {
                   );
 
                   if (isVerified == true) {
+                    // ignore: use_build_context_synchronously
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("PIN correct ! Redirection...")),
                     );
@@ -62,10 +63,12 @@ class PinOptionsScreen extends StatelessWidget {
                     await Future.delayed(const Duration(seconds: 1));
 
                     Navigator.push(
+                      // ignore: use_build_context_synchronously
                       context,
                       MaterialPageRoute(builder: (context) => const PinCodeScreen()),
                     );
                   } else {
+                    // ignore: use_build_context_synchronously
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("PIN incorrect ou annulé.")),
                     );

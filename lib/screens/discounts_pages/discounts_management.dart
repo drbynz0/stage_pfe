@@ -53,7 +53,8 @@ class _DiscountsManagementScreenState extends State<DiscountsManagementScreen> {
     if (_searchQuery.isEmpty) return _discounts;
     return _discounts.where((discount) {
       return discount.productName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          discount.productCategory.toLowerCase().contains(_searchQuery.toLowerCase());
+          discount.productCategory.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          discount.promotionPrice.toString().contains(_searchQuery);
     }).toList();
   }
 
@@ -95,7 +96,7 @@ class _DiscountsManagementScreenState extends State<DiscountsManagementScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddDiscountDialog(),
-        backgroundColor: const Color(0xFF003366),
+        backgroundColor: Colors.blue,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -135,6 +136,7 @@ class _DiscountsManagementScreenState extends State<DiscountsManagementScreen> {
 
   Widget _buildDiscountCard(Discount discount) {
     final discountPercentage = ((discount.normalPrice - discount.promotionPrice) / discount.normalPrice * 100).round();
+    Product product = Product.getProductById(discount.productId);
 
     return InkWell(
       onTap: () {
@@ -143,7 +145,7 @@ class _DiscountsManagementScreenState extends State<DiscountsManagementScreen> {
           MaterialPageRoute(
             builder: (context) => DetailsDiscountScreen(
               discount: discount,
-              product: Product.getProductById(discount.productId), // Fonction à implémenter
+              product: product, // Fonction à implémenter
             ),
           ),
         );
@@ -162,7 +164,7 @@ class _DiscountsManagementScreenState extends State<DiscountsManagementScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.asset(
-                  discount.images ?? 'assets/image/empty_promotion.png',
+                  product.imagePaths?[0] ?? 'assets/image/empty_promotion.png',
                   width: 80,
                   height: 80,
                   fit: BoxFit.cover,

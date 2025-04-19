@@ -82,8 +82,7 @@ class Discount {
       description: '',
     );
   }
-  static List<Discount> getDiscountList() {
-    return [
+  static final List<Discount> discountList = [
       Discount(
         id: '1',
         title: 'Remise de 10%',
@@ -99,7 +98,7 @@ class Discount {
         id: '2',
         title: 'Remise de 20%',
         validity: '15 mai 2025',
-        productId: '2',
+        productId: '30201',
         productCategory: 'Catégorie B',
         images: 'assets/image/icon_shop.jpg',
         productName: 'Produit B',
@@ -108,25 +107,35 @@ class Discount {
         description: 'Description du produit B',
       ),
     ];
+
+  static final List<Discount> _discountList = [];
+
+  static List<Discount> getDiscountList() {
+    return discountList;
   }
-  static List<Discount> getDiscountListByProduct(String productId) {
+
+  void addDiscount(Discount newDiscount) {
+    _discountList.insert(0, newDiscount);
+  }
+
+  List<Discount> getDiscountListByProduct(String productId) {
     return getDiscountList().where((discount) => discount.productName == productId).toList();
   }
-  static List<Discount> getDiscountListByValidity(String validity) {
+  List<Discount> getDiscountListByValidity(String validity) {
     return getDiscountList().where((discount) => discount.validity == validity).toList();
   }
-  static List<Discount> getDiscountListByTitle(String title) {
+  List<Discount> getDiscountListByTitle(String title) {
     return getDiscountList().where((discount) => discount.title == title).toList();
   }
-  static List<Discount> getDiscountListByNormalPrice(double normalPrice) {
+  List<Discount> getDiscountListByNormalPrice(double normalPrice) {
     return getDiscountList().where((discount) => discount.normalPrice == normalPrice).toList();
   }
-  static List<Discount> getDiscountListByPromotionPrice(double promotionPrice) {
+  List<Discount> getDiscountListByPromotionPrice(double promotionPrice) {
     return getDiscountList().where((discount) => discount.promotionPrice == promotionPrice).toList();
   }
-  static List<Discount> getDiscountListById(String id) {
+  List<Discount> getDiscountListById(String id) {
     return getDiscountList().where((discount) => discount.id == id).toList();
+  }
   }
 
   
-}

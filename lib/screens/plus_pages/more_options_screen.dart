@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import '../discounts_pages/discounts_management.dart';
 import '../factures_pages/factures_management_screen.dart';
 import '../fourns_pages/suppliers_management_screen.dart';
+import '../stats/stats.dart';
+import '/models/internal_order.dart';
+import '/models/external_order.dart';
+import '/models/product.dart';
 
 class MoreOptionsScreen extends StatelessWidget {
   const MoreOptionsScreen({super.key});
@@ -94,9 +98,15 @@ class MoreOptionsScreen extends StatelessWidget {
         ),
       );
     } else if (label == 'Stats') {
-      // Afficher un SnackBar pour la page Stats
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$label cliqué')),
+      Navigator.push(
+        context, 
+        MaterialPageRoute(
+          builder: (context) => StatsPage(
+            internalOrders: InternalOrder.getInternalOrderList(),
+            externalOrders: ExternalOrder.getExternalOrderList(),
+            allProducts: Product.getProducts(),
+          ),
+        ),
       );
     } else if (label == 'Bon à délivrer') {
       // Afficher un SnackBar pour la page Bon à délivrer

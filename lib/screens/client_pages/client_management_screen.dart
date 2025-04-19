@@ -28,12 +28,6 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
     });
   }
 
-  void _deleteClient(String clientId) {
-    setState(() {
-      _clients.removeWhere((c) => c.id == clientId);
-    });
-  }
-
   List<Client> get filteredClients {
     return _clients.where((client) {
       return client.name.toLowerCase().contains(_searchQuery.toLowerCase());
@@ -180,16 +174,8 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
                                     IconButton(
                                       icon: const Icon(Icons.delete, color: Colors.red),
                                       tooltip: 'Supprimer',
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => DeleteClientScreen(
-                                              client: client,
-                                              onDeleteClient: _deleteClient,
-                                            ),
-                                          ),
-                                        );
+                                      onPressed: () => {
+                                        _showDeleteDialog(client),
                                       },
                                     ),
                                   ],
@@ -249,7 +235,7 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
             right: 15, // Changez ces valeurs pour personnaliser la position
             child: FloatingActionButton(
               onPressed: _showAddClientDialog,
-              backgroundColor: const Color(0xFF004A99),
+              backgroundColor: Colors.blue,
               child: const Icon(Icons.add, color: Colors.white),
             ),
           ),
@@ -258,17 +244,34 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
     );
   }
 
-    void _showAddClientDialog() {
+  void _showAddClientDialog() {
     showDialog(
       context: context,
       builder: (context) => AddClientScreen(
         onAddClient: (newClient) {
           setState(() {
-            _clients.insert(0, newClient);
+            Client.addClient(newClient);
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Client Ajouté avec succès'), duration: const Duration(seconds: 3), backgroundColor: Colors.green,),
-          );        
+            SnackBar(content: Text('${newClient.name} est Ajouté avec succès'), duration: const Duration(seconds: 3), backgroundColor: Colors.green,),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showDeleteDialog(Client client) {
+    showDialog(
+      context: context,
+      builder: (context) =>  DeleteClientScreen(
+        client: client,
+        onDeleteClient: () {
+          setState(() {
+            Client.removeClient(client);
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${client.name} est supprimé avec succès'), duration: const Duration(seconds: 3), backgroundColor: Colors.red,),
+          );
         },
       ),
     );

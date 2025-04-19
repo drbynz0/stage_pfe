@@ -265,11 +265,11 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
       builder: (context) => AddExternalOrderScreen(
         onOrderAdded: (newProduct) {
           setState(() {
-            _orders.insert(0, newProduct);
+            ExternalOrder.addExternalOrder(newProduct);
           });
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Commande ajouté avec succès'), 
+              content: Text('Commande ajouté avec succès'),
               backgroundColor: Colors.green,
             ),
           );
@@ -285,7 +285,7 @@ class ExternalOrdersScreenState extends State<ExternalOrdersScreen> {
         orderId: order.id,
         onConfirm: () {
           setState(() {
-            _orders.removeWhere((o) => o.id == order.id);
+            ExternalOrder.removeExternalOrder(order);
           });
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
