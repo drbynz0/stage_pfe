@@ -101,6 +101,7 @@ class OrderItem {
 enum OrderStatus {
   pending,
   processing,
+  toPay,
   completed,
   cancelled,
 }

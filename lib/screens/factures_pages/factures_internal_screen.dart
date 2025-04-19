@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '/models/factures.dart';
+import '/models/internal_order.dart';
+import 'details_facture_internal_screen.dart'; // Importez votre écran de détail
 
 class FacturesInternalScreen extends StatefulWidget {
   const FacturesInternalScreen({super.key});
@@ -12,6 +14,14 @@ class FacturesInternalScreenState extends State<FacturesInternalScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   List<FactureClient> internalFactures = FactureClient.getInternalFactures();
+  List<InternalOrder> internalOrders = []; // Vous devez récupérer cette liste
+
+  @override
+  void initState() {
+    super.initState();
+    // Chargez vos commandes internes ici si nécessaire
+    // internalOrders = InternalOrder.getInternalOrders();
+  }
 
   List<FactureClient> _filterFactures(List<FactureClient> factures) {
     return factures.where((facture) {
@@ -67,26 +77,13 @@ class FacturesInternalScreenState extends State<FacturesInternalScreen> {
   }
 
   void _showFactureDetails(FactureClient facture) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Détails de la Facture'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Client: ${facture.clientName}'),
-            Text('Montant: ${facture.amount.toStringAsFixed(2)} DH'),
-            Text('Date: ${facture.date}'),
-            Text('Description: ${facture.description}'),
-          ],
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ModernFactureDetailScreen(
+          facture: facture,
+          internalOrders: internalOrders, // Passez la liste des commandes
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Fermer'),
-          ),
-        ],
       ),
     );
   }

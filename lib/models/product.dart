@@ -16,7 +16,7 @@ class Product {
       code: "6223007650274",
       category: "Bgg & Pouch",
       stock: 10,
-      price: 121.00,
+      price: 333.33,
       date: "29 Dec 2022",
       imagePaths: ["assets/image/icon_shop.jpg"],
     ),

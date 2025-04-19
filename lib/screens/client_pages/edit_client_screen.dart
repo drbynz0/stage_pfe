@@ -14,6 +14,7 @@ class EditClientScreen extends StatefulWidget {
 class _EditClientScreenState extends State<EditClientScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
+  late TextEditingController _iceController;
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
   late TextEditingController _addressController;
@@ -22,6 +23,7 @@ class _EditClientScreenState extends State<EditClientScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.client.name);
+    _iceController = TextEditingController(text: widget.client.ice);
     _emailController = TextEditingController(text: widget.client.email);
     _phoneController = TextEditingController(text: widget.client.phone);
     _addressController = TextEditingController(text: widget.client.address);
@@ -31,6 +33,7 @@ class _EditClientScreenState extends State<EditClientScreen> {
     if (_formKey.currentState!.validate()) {
       final updatedClient = Client(
         id: widget.client.id,
+        ice: _iceController.text,
         name: _nameController.text,
         email: _emailController.text,
         phone: _phoneController.text,
@@ -79,6 +82,19 @@ class _EditClientScreenState extends State<EditClientScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Veuillez entrer un nom';
                   }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+                            TextFormField(
+                controller: _iceController,
+                decoration: InputDecoration(
+                  hintText: 'Entrez l\'ice',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                validator: (value) {
                   return null;
                 },
               ),

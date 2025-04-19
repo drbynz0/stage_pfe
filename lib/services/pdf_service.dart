@@ -279,6 +279,7 @@ class PdfService {
     switch (status) {
       case OrderStatus.pending: return 'En attente';
       case OrderStatus.processing: return 'En traitement';
+      case OrderStatus.toPay: return 'À payer';
       case OrderStatus.completed: return 'Terminée';
       case OrderStatus.cancelled: return 'Annulée';
     }

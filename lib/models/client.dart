@@ -1,5 +1,6 @@
 class Client {
   final String id;
+  final String? ice;
   final String name;
   final String email;
   final String phone;
@@ -66,6 +67,7 @@ class Client {
 
   Client({
     required this.id,
+    this.ice = 'N/A',
     required this.name,
     required this.email,
     required this.phone,
@@ -74,6 +76,10 @@ class Client {
 
   static List<Client> getClients() {
     return _clients;
+  }
+
+  static Client getClientById(String id) {
+    return _clients.firstWhere((client) => client.id == id, orElse: () => Client.empty());
   }
 
   static void addClient(Client client) {
