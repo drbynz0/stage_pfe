@@ -68,10 +68,6 @@ class _StatsPageState extends State<StatsPage> {
         );
       }
     }
-
-    // Ajouter le traitement des commandes externes si nécessaire
-    // ...
-
     return productMap.values.toList();
   }
 
@@ -199,5 +195,4 @@ class _StatsPageState extends State<StatsPage> {
         return MonthlySalesChart(records: _allRecords,);
     }
   }
-
 }
